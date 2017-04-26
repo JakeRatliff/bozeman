@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<head>
+
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<script src="https://apis.google.com/js/platform.js" async defer></script>
+	<meta name="google-signin-client_id" content="581211015635-2jutg96qhkbm769tipdje6s648tqg0fs.apps.googleusercontent.com">
+	
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" 
+	integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" 
+	crossorigin="anonymous">
+	</script>
+	
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+	
+		
+</head>
+<body>
+<div class="tempNav">
+<!--a href="/">Home</a-->
+{{#if loggedInUserName}}
+<a href="/profile/{{loggedInUserName}}">Profile</a>
+<a href="/browse">Browse</a>
+<span id="userLoggedIn">
+Logged in as {{loggedInUserName}}
+<form action='/logout' method='POST'><button class="logout">Log out</button></form>
+</span>
+{{else}}
+<p>You are not logged in.</p>
+{{/if}}
+
+</div>
+	<div id="container">
+		{{{body}}}
+	</div>
+	
+</body>
+
+<style>
+#userLoggedIn form{
+	background-color: blue;
+	display: inline;
+}
+
+#userLoggedIn{
+	margin:30px;
+}
+</style>
+{{#if loggedInUserName}}
+<script>
+	$(document).ready(function(){	
+		console.log("document loaded and jQuery is working");
+		function getLocation() {
+			if (navigator.geolocation) {
+				navigator.geolocation.watchPosition(showPosition,showError); //for one-time: getCurrentPosition()
+			} else {
+				console.log("Geolocation is not supported by this browser.");
+			}
+		}
+		function showPosition(position) {
+		
+			$.ajax({
+				method: "POST",
+				url: "/user-locale",
+				data: {"lon": position.coords.longitude, "lat": position.coords.latitude},
+				success: console.log("posted location to server...")
+			});//.done(function(){
+				//console.log("posted location to server...");
+			//});
+			//console.log("updating position: " + position.coords.latitude + ", " + position.coords.longitude);
+		}
+		function showError(error) {
+			switch(error.code) {
+			case error.PERMISSION_DENIED:
+				console.log("User denied the request for Geolocation.")
+				break;
+			case error.POSITION_UNAVAILABLE:
+				console.log("Location information is unavailable.")
+				break;
+			case error.TIMEOUT:
+				console.log("The request to get user location timed out.")
+				break;
+			case error.UNKNOWN_ERROR:
+				console.log("An unknown error occurred.")
+				break;
+			}	
+		}
+		getLocation();
+	})	
+</script>
+{{/if}}
+
+</html>

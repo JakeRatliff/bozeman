@@ -1,0 +1,26 @@
+<div class="container">
+	<h1>{{userName}} <small>  (this is you)</small></h1>
+	<div>
+		{{#if imgUrl}}
+			<img style="height:150px;border-radius:30px;" src="http://localhost:3005/{{imgUrl}}"> <!-- temporary  - not for production -->
+		{{else}}
+			<img style="height:150px;border-radius:30px;" src="https://quinary-niume.scdn3.secure.raxcdn.com/pic/profile/default_profile.jpg">
+		{{/if}}
+	</div>
+	<h3>About {{userName}}</h3>
+	<p><strong>Bio:</strong> {{bio}}</p>
+	<div id="bands">
+	<p><strong>Bands:</strong></p>
+		<ul>
+			{{#each bands}}
+				<li>
+					{{this}}
+				</li>
+			{{/each}}
+		</ul>
+	</div>
+	{{#if age}}<p><strong>Age:</strong> {{age}}</p>{{/if}}
+	{{#if gender}}<p><strong>Gender:</strong> {{gender}}</p>{{/if}} <!-- TODO: CONSIDER MAKING THIS GENDERLESS -->
+	<button  style="display:none" class="btn btn-large btn-info"id="seeBands">See Favorite Bands</button>
+
+</div>

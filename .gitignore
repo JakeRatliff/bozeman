@@ -1,0 +1,19 @@
+#credentials
+credentials.js
+
+#node modules
+node_modules/
+
+#logs
+logs
+*.log
+
+#environment variables
+.env
+
+.firebaserc
+
+web-api-auth-examples/
+
+#profile pictures
+uploads/

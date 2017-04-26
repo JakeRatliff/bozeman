@@ -1,0 +1,44 @@
+<form class="form-horizontal" role="form" 
+		enctype="multipart/form-data" method="POST"
+		action="/complete-profile">
+	<div class="form-group">
+		<label for="fieldName" class="col-sm-2 control-label">User Name</label>
+		<div class="col-sm-4">
+			<input type="text" class="form-control" 
+			id="fieldName" name="name">
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="fieldPhoto" class="col-sm-2 control-label">Profile Picture</label>
+		<div class="col-sm-4">
+			<input type="file" class="form-control" required accept="image/*"
+				id="fieldPhoto" data-url="/upload" name="photo">
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="fieldBio" class="col-sm-2 control-label">Bio</label>
+		<div class="col-sm-4">
+			<input type="text" class="form-control" 
+				id="fieldBio" name="bio">
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="fieldAge" class="col-sm-2 control-label">Age</label>
+		<div class="col-sm-4">
+			<input type="text" class="form-control" 
+				id="fieldAge" name="age">
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="fieldGender" class="col-sm-2 control-label">Gender</label>
+		<div class="col-sm-4">
+			<input type="text" class="form-control" 
+				id="fieldGender" name="gender">
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-offset-2 col-sm-4">
+			<button type="submit" class="btn btn-primary">Finish Profile</button>
+		</div>
+	</div>
+</form>
