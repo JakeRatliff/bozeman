@@ -38,7 +38,7 @@ document.getElementById('login-btn').onclick = function() {
 -->
 
 {{# if user}}
-<p>Welcome, {{user}}</p>
+<p>Welcome, {{user.displayName}}</p>
 <div id="exit">
 	<form action="logout" method="POST">
 		<button class="logout">Log out</button>

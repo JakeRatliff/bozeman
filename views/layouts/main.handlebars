@@ -35,7 +35,6 @@ Logged in as {{loggedInUserName}}
 	<div id="container">
 		{{{body}}}
 	</div>
-	
 </body>
 
 <style>
@@ -47,10 +46,12 @@ Logged in as {{loggedInUserName}}
 #userLoggedIn{
 	margin:30px;
 }
+
+
 </style>
 {{#if loggedInUserName}}
 <script>
-	$(document).ready(function(){	
+	$(document).ready(function(){
 		console.log("document loaded and jQuery is working");
 		function getLocation() {
 			if (navigator.geolocation) {
@@ -60,12 +61,11 @@ Logged in as {{loggedInUserName}}
 			}
 		}
 		function showPosition(position) {
-		
 			$.ajax({
 				method: "POST",
 				url: "/user-locale",
-				data: {"lon": position.coords.longitude, "lat": position.coords.latitude},
-				success: console.log("posted location to server...")
+				data: position.coords,
+				success: function(){console.log("posted location to server...")}
 			});//.done(function(){
 				//console.log("posted location to server...");
 			//});

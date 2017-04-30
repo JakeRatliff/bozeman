@@ -26,5 +26,24 @@
 	{{#if age}}<p><strong>Age:</strong> {{age}}</p>{{/if}}
 	{{#if gender}}<p><strong>Gender:</strong> {{gender}}</p>{{/if}} <!-- TODO: CONSIDER MAKING THIS GENDERLESS -->
 	<button  style="display:none" class="btn btn-large btn-info"id="seeBands">See Favorite Bands</button>
+	<button id="nextProfile" class="btn btn-large">Next Profile</button>
 
 </div>
+
+<script>
+
+$("#nextProfile").one('click', function(){
+	console.log("you clicked next");
+	$.ajax({
+		method: "GET",
+		url: "/next-profile",
+		data: name,
+		dataType: "text",
+		success: function(name){
+			console.log(name);
+			window.location.href = '/profile/' + name;
+		}
+	});
+});
+
+</script>

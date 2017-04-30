@@ -29,8 +29,10 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var user;
-var userLocation;
+var loggedInUserLocation = [];
 var loggedInUserName;
+var matches = [];
+var matchIndex = 0;
 auth.onAuthStateChanged(function(firebaseUser){
 	if(firebaseUser){
 		console.log("user is logged in as: " + firebaseUser.email);
@@ -42,6 +44,7 @@ auth.onAuthStateChanged(function(firebaseUser){
 		//TODO remove session
 	}
 });
+
 
 app.use('/uploads', express.static(__dirname + "/uploads"));
 
@@ -62,8 +65,8 @@ var jakesDevLogger = function(req, res, next){
 	//if(user) user = user.email;
 	if(user){
 		console.log("\nJake's dev logger:\n   User: " + loggedInUserName + "\n   Date: " + new Date()+"\n   req.url: " + req.url+"\n");
-		if(userLocation){
-			console.log("User location: Longitude: " + userLocation.lon + " , Latitude:" + userLocation.lat);
+		if(loggedInUserLocation){
+			console.log("User location: Longitude: " + loggedInUserLocation[0] + " , Latitude:" + loggedInUserLocation[1]);
 		}
 	}else{
 		console.log("\Jakes's dev logger: not logged in.");
@@ -88,13 +91,12 @@ function haversineDistance(coords1, coords2, isMiles) {
   function toRad(x) {
     return x * Math.PI / 180;
   }
-
   
-  var lon1 = coords1.lon;
-  var lat1 = coords1.lat;
+  var lon1 = coords1[0];
+  var lat1 = coords1[1];
 
-  var lon2 = coords2.lon;
-  var lat2 = coords2.lat;
+  var lon2 = coords2[0];
+  var lat2 = coords2[1];
 
   var R = 6371; // km
 
@@ -124,6 +126,31 @@ app.get('/make-fake', function(req, res){
 	res.render('create-fake-profile');
 });
 
+app.get('/user-map',function(req,res){
+	res.render('map');
+
+});
+
+app.get('/user-locs', function(req, res){
+	var userLocs = [];
+	MongoClient.connect(URI, function(err, db){
+		if(!err){
+			db.collection('bandyUsers').find({},{_id:0,loc:1,name:1}).toArray(function(err, docs){
+				if(!err){
+					docs.forEach(function(doc){
+						userLocs.push([doc.loc, doc.name]);
+					});
+					res.send(userLocs);
+				}else{
+					console.log(err);
+				}
+			});
+		}else{
+			console.log(err);
+			}
+	});
+});
+
 app.post('/make-fake', function(req,res){
 	var form = new formidable.IncomingForm();	
 	form.uploadDir = __dirname + '/uploads';
@@ -142,17 +169,30 @@ app.post('/make-fake', function(req,res){
 		console.log('recieved files: ');
 		console.log(files);
 		*/
+		var userLocation;
+		
 		var fakedCoords = function(){ //{"lon": -79.0558, "lat": 35.9132};
 			function posNeg(){
 				var plusOrMinus = Math.random() < 0.5 ? -1 : 1; return plusOrMinus
 				};		
-			var lon = -78.85 + (Math.random()*.05*posNeg());
-			var lat = 35.84 + (Math.random()*.05*posNeg());
-			return {"lon": lon, "lat": lat}		
+			var lon = -78.85 + (Math.random()*.1*posNeg());
+			var lat = 35.84 + (Math.random()*.1*posNeg());
+			return {type: "Point", coordinates:[lon,lat]};		
 		}
+		
+		if(fields.specificCoords){
+			console.log("there are specified coords");
+			userLocation = {type : "Point", coordinates: fields.specificCoords.split(", ")};
+			userLocation.coordinates[0] = +userLocation.coordinates[0];
+			userLocation.coordinates[1] = +userLocation.coordinates[1];
+		}else{
+			userLocation = fakedCoords();
+		};
+
 		//user.updateProfile({
 			//displayName: fields.name,
 		//}).then(function() {
+		
 			// Update successful.
 			//console.log("user display name updated in Firebase, now adding to MongoDB and redirecting...");
 				MongoClient.connect(URI, function(err, db){
@@ -167,7 +207,7 @@ app.post('/make-fake', function(req,res){
 								"age" : fields.age,
 								"gender" : fields.gender,
 								"bands": fields.bands.split(", "),
-								"loc" : fakedCoords(),
+								"loc" : userLocation,
 								"fake" : true
 							});					
 						}catch(e){
@@ -209,7 +249,8 @@ app.get('/list-profiles', function(req, res){
 		});
 });
 
-app.get('/profile/:userName', function(req, res){	
+app.get('/profile/:userName', function(req, res){
+console.log(loggedInUserLocation);	
 	if(user){
 		var imageSrc;
 		var userName = req.params.userName;
@@ -229,8 +270,10 @@ app.get('/profile/:userName', function(req, res){
 						age = doc.age;
 						gender = doc.gender;
 						bands = doc.bands;
-						otherUserLocation = doc.loc;
-						distance = haversineDistance(userLocation, otherUserLocation, true)
+						otherUserLocation = doc.loc.coordinates;
+						//console.log(otherUserLocation);
+						//console.log(loggedInUserLocation);
+						distance = haversineDistance(loggedInUserLocation, otherUserLocation, true)
 						
 						if(userName == loggedInUserName){
 							res.render('self',{
@@ -278,22 +321,53 @@ app.get('/edit', function(req,res){
 
 app.get('/browse', function(req, res){
 	if(user){
-		res.render('browse');
+		//res.render('browse');
+		console.log("your location = " + loggedInUserLocation);
+		console.log("matches.length = " + matches.length);
+		MongoClient.connect(URI, function(err,db){
+			if(!err){
+				db.collection('bandyUsers').find(
+				{loc: {$geoWithin:{$centerSphere:[loggedInUserLocation,10/3963.2]}}},
+				{_id:0,name:1}).toArray(function(err, docs){
+					if(!err){
+						docs.forEach(function(doc){
+							matches.push(doc.name);
+						});
+						console.log("matches.length = " + matches.length);
+						res.redirect(302,'/profile/' + matches[0]);
+					}else{
+						console.log(err)
+					};
+				});
+			}else{
+				console.log(err);
+			};
+		});
 	}else{
 	res.redirect('/')
+	console.log("need to be logged in to browse");
 	};
 });
 
+app.get('/next-profile', function(req,res){
+	matchIndex ++;
+	if(loggedInUserName == matches[matchIndex]) matchIndex ++;
+	res.send(matches[matchIndex]);
+});
+
+
 app.post('/user-locale', function(req,res){
-	userLocation = req.body;
-	if(userLocation){
+	loggedInUserLocation[0] = +req.body.longitude;
+	loggedInUserLocation[1] = +req.body.latitude;
+	console.log(loggedInUserLocation);
+	if(loggedInUserLocation){
 		MongoClient.connect(URI, function(err, db){
 			if(!err){
 				console.log('connected to db, updating document...');
 				try{
 					db.collection('bandyUsers').updateOne({"userEmail":auth.currentUser.email},				
 					{$set:{
-						"loc" : userLocation
+						"loc" : {type: "Point", coordinates: loggedInUserLocation}
 					}});					
 				}catch(e){
 					console.log(e)
@@ -398,7 +472,7 @@ app.post('/login', function(req, res) {
 	var errorMsg = function(e){
 		console.log(e.message);
 	};
-	signIn.then(function(){res.redirect('/browse');}).catch(errorMsg);    
+	signIn.then(function(){res.redirect('/user-map');}).catch(errorMsg);    
 });
   
 app.post('/sign-up', function(req, res) {
