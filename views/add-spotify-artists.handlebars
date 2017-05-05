@@ -1,5 +1,3 @@
-
-<h1>Add Your Favorite Bands</h1>
     <div class="container">
       <div id="login">
         <h3>Add Your Top Artists from Spotify</h3>
@@ -23,61 +21,29 @@
 		<button id="continueButton" class="btn large" style="display:none">Continue to Profile</button>
 	  </div>
     </div>
-	
-<!--
-    <script id="user-profile-template" type="text/x-handlebars-template">
-      <h1>Logged in as {{display_name}}</h1>
-      <div class="media">
-        <div class="pull-left">
-          <img class="media-object" width="150" src="{{images.0.url}}" />
-        </div>
-        <div class="media-body">
-          <dl class="dl-horizontal">
-            <dt>Display name</dt><dd class="clearfix">{{display_name}}</dd>
-            <dt>Id</dt><dd>{{id}}</dd>
-            <dt>Email</dt><dd>{{email}}</dd>
-            <dt>Spotify URI</dt><dd><a href="{{external_urls.spotify}}">{{external_urls.spotify}}</a></dd>
-            <dt>Link</dt><dd><a href="{{href}}">{{href}}</a></dd>
-            <dt>Profile Image</dt><dd class="clearfix"><a href="{{images.0.url}}">{{images.0.url}}</a></dd>
-            <dt>Country</dt><dd>{{country}}</dd>
-          </dl>
-        </div>
-      </div>
-    </script>
 
-    <script id="oauth-template" type="text/x-handlebars-template">
-      <h2>oAuth info</h2>
-      <dl class="dl-horizontal">
-        <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
-      </dl>
-    </script>
-
-    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-	
-	-->
     <script>
-      (function() {
-	  
-		function findBand(band){
-			for(i=0;i<savedBands.length;i++){
-				if(savedBands[i]['name'] == band){
-					console.log(savedBands[i]['name']);
+      (function() {	  
+
+		function findImage(x){
+			for(i=0;i<x.length;i++){
+				if(175 < x[i]['height'] < 300){
 					return i;
 				}
 			}
 		};
-
+	  
         var stateKey = 'spotify_auth_state';
 		
 		var savedBands = []; //TODO: clear localStorage upon adding bands to profile....
-		var localStoreBands = localStorage.getItem("savedBands");
+		/*var localStoreBands = localStorage.getItem("savedBands");
 		if(localStoreBands){
 			var previousBands = JSON.parse(localStoreBands);
 			previousBands.forEach(function(band){
 				$("#bands").append("<button class='btn addedBand'>"+band.name+"<span class='glyphicon glyphicon-remove'></span></button>");
 			});
 		};
+		*/
 		//var storedNames = JSON.parse(localStorage.getItem("savedBands"));
 
         /**
@@ -108,15 +74,7 @@
           }
           return text;
         };
-		/*
-        var userProfileSource = document.getElementById('user-profile-template').innerHTML,
-            userProfileTemplate = Handlebars.compile(userProfileSource),
-            userProfilePlaceholder = document.getElementById('user-profile');
 
-            oauthSource = document.getElementById('oauth-template').innerHTML,
-            oauthTemplate = Handlebars.compile(oauthSource),
-            oauthPlaceholder = document.getElementById('oauth');
-		*/
         var params = getHashParams();
 
         var access_token = params.access_token,
@@ -135,12 +93,15 @@
                 },
                 success: function(response) {
 				  response.items.forEach(function(i){
-						$('#bands').append("<button class='btn addedBand'>"+i.name+"<span class='glyphicon glyphicon-remove'></span></button>");
-						savedBands.push({"name" : i.name, "spotifyId": i.id});
-					});
-					
+						var imgIndex = findImage(i.images);
+						$('#bands').append("<img class='bandImage' src="+i.images[imgIndex].url+"></img>");
+						//was appending: <button class='btn addedBand'>"+i.name+
+						//"<span class='glyphicon glyphicon-remove'></span></button>
+						savedBands.push({"name" : i.name, "spotifyId": i.id, "artistImage": i.images[imgIndex].url});
+					});					
                   $('#login').hide();
                   $('#loggedin').show();
+				  $('#continueButton').show();
                 }
             });
           } else {
@@ -180,7 +141,7 @@
 				$("#bands").append("<button class='btn addedBand'>"+band+"<span class='glyphicon glyphicon-remove'></span></button>");
 				$("#bandInput").val("");
 				savedBands.push({"name":band, "spotifyId":undefined});
-				continueButton();
+				//continueButton();
 			}
 		});
 		
@@ -188,7 +149,7 @@
 			this.remove();
 			var index = findBand(this.innerText);
 			savedBands.splice(index,1);
-			continueButton();			
+			//continueButton();			
 		})
 		
 	  	function continueButton(){
@@ -232,5 +193,9 @@
 			color:white;
 			border-radius:20px;
 			margin: 5px;
+		}
+		
+		.bandImage{
+			height: 175px;
 		}
 	</style>

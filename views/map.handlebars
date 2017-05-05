@@ -1,0 +1,60 @@
+    <div>User Map</div>
+	<div id="map" style="height:600px; width:100%;"></div>
+
+<script>
+
+	
+
+	var map;
+	
+	function initMap() {
+        var contigUSCenter = {lat: 39.50, lng: -98.35};
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 5,
+          center: contigUSCenter
+        });
+        var marker = new google.maps.Marker({
+          position: contigUSCenter,
+          map: map
+        });
+    };
+	
+	$.ajax({
+		method: "GET",
+		url: "/user-locs",
+		dataType: "JSON"		
+	}).done(function(data){
+		console.log(data);
+		var coordinates = [];
+		for(i=0;i<data.length;i++){
+			console.log(data[i]);
+			var name = data[i][1];
+			var lng = data[i][0].coordinates[0];
+			var lat = data[i][0].coordinates[1];
+			coordinates.push({loc: {lat: lat, lng: lng}, content: name});
+		};
+		var triangleNC = {lat: 35.93, lng: -78.96};
+		var map = new google.maps.Map(document.getElementById('map'), {
+			zoom: 10,
+			center: triangleNC
+		});
+
+		coordinates.forEach(function(coord){
+			//console.log(coord);			
+			var marker = new google.maps.Marker({
+				position: coord.loc,
+				map: map,
+			});
+			var infoWindow = new google.maps.InfoWindow({
+				content: "<a href='localhost:3005/profile/"+coord.content+"'>"+coord.content+"</a>"
+			});
+			marker.addListener('click', function() {
+				infoWindow.open(map, marker);
+			});
+		});			
+	});
+	
+</script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC8exwualKdhKgOavzf994srWfglRnjR5Y&callback=initMap">
+    </script>

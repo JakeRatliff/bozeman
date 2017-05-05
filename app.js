@@ -13,6 +13,8 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
+///Russ Jones: "npm install jaccard" TODO
+
 app.use(require('express-session')({
     resave: false,
     saveUninitialized: false,
@@ -29,10 +31,13 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var user;
-var loggedInUserLocation = [];
+var loggedInUserLocation= [];
 var loggedInUserName;
 var matches = [];
 var matchIndex = 0;
+
+var userBands = [];
+
 auth.onAuthStateChanged(function(firebaseUser){
 	if(firebaseUser){
 		console.log("user is logged in as: " + firebaseUser.email);
@@ -114,11 +119,39 @@ function haversineDistance(coords1, coords2, isMiles) {
   return d;
 }
 
+//for Spotify client credentials auth:
+var authOptions = {
+  url: 'https://accounts.spotify.com/api/token',
+  headers: {
+	'Authorization': 'Basic ' + (new Buffer(credentials.spotifyClientId + ':' + credentials.spotifyClientSecret).toString('base64'))
+  },
+  form: {
+	grant_type: 'client_credentials'
+  },
+  json: true
+};
+
+
 //////////
 //ROUTES//
 //////////
-app.get('/', function(req,res){
-	res.render('home', {user: user});	
+app.get('/', function(req,res){	
+	request.post(authOptions, function(error, response, body) {
+		if (!error && response.statusCode === 200) {
+			var token = body.access_token;
+			var options = {
+				url: 'https://api.spotify.com/v1/artists/0OdUWJ0sBjDrqHygGUXeCF', //getting an artist 
+				headers: {
+					'Authorization': 'Bearer ' + token
+				},
+				json: true
+			};
+			request.get(options, function(error, response, body) {
+				console.log(body);
+				res.render('home',{user:user});
+			});
+		}
+	});
 });
 
 ////DEV TESTING ONLY NFP:
@@ -152,6 +185,18 @@ app.get('/user-locs', function(req, res){
 });
 
 app.post('/make-fake', function(req,res){
+	var fakeUserBands = JSON.parse(req.cookies.fakeUserBands);
+	var bandIds = [];
+	var relBandIds = [];
+	var allBandIds = [];
+	processedBands = 0;
+	
+	fakeUserBands.forEach(function(band){
+		bandIds.push(band.spotifyId);
+		allBandIds.push(band.spotifyId);
+	});
+
+
 	var form = new formidable.IncomingForm();	
 	form.uploadDir = __dirname + '/uploads';
     console.log("--FORM--");	
@@ -163,20 +208,27 @@ app.post('/make-fake', function(req,res){
 
 	form.parse(req, function(err, fields, files){
 		if(err) return res.redirect(303, '/');
-		/*
+		
 		console.log('recieved fields: ');
 		console.log(fields);
+		/*
 		console.log('recieved files: ');
 		console.log(files);
 		*/
+		
+		fakeUserBands.forEach(function(band){
+			getRelated(band)
+		});
+	
+		
 		var userLocation;
 		
 		var fakedCoords = function(){ //{"lon": -79.0558, "lat": 35.9132};
 			function posNeg(){
 				var plusOrMinus = Math.random() < 0.5 ? -1 : 1; return plusOrMinus
 				};		
-			var lon = -78.85 + (Math.random()*.1*posNeg());
-			var lat = 35.84 + (Math.random()*.1*posNeg());
+			var lon = -79.00 + (Math.random()*.1*posNeg());
+			var lat = 35.94 + (Math.random()*.1*posNeg());
 			return {type: "Point", coordinates:[lon,lat]};		
 		}
 		
@@ -188,42 +240,65 @@ app.post('/make-fake', function(req,res){
 		}else{
 			userLocation = fakedCoords();
 		};
-
-		//user.updateProfile({
-			//displayName: fields.name,
-		//}).then(function() {
 		
-			// Update successful.
-			//console.log("user display name updated in Firebase, now adding to MongoDB and redirecting...");
-				MongoClient.connect(URI, function(err, db){
-					if(!err){
-						console.log('connected to db, inserting fake profile...');
-						try{
-							db.collection('bandyUsers').insertOne(				
-							{
-								"name" : fields.name,
-								"photo" : files.photo,
-								"bio" : fields.bio,
-								"age" : fields.age,
-								"gender" : fields.gender,
-								"bands": fields.bands.split(", "),
-								"loc" : userLocation,
-								"fake" : true
-							});					
-						}catch(e){
-							console.log(e)
-						};
-					}else{
-						console.log(err);
-					}
-				})		
-				res.redirect(303,'/list-profiles');
-			//}, function(error) {
-			  // An error happened.
-			  //console.log(error);
-		//});
-		
+		function getRelated(band){
+			request.post(authOptions, function(error, response, body) {
+				if (!error && response.statusCode === 200) {
+					var token = body.access_token;
+					var options = {
+						url: 'https://api.spotify.com/v1/artists/' + band.spotifyId + '/related-artists', 
+						headers: {
+							'Authorization': 'Bearer ' + token
+						},
+						json: true
+					};
+					request.get(options, function(err, response, body) {
+						if(!err){
+							var artists = body.artists;						
+							artists.forEach(function(artist){
+								relBandIds.push(artist.id);
+								allBandIds.push(artist.id);
+							})
+							processedBands++;
+							if(processedBands === fakeUserBands.length){
+								sendData();
+							}
+						}else{
+							console.log(err);
+						}
+					});
+				}
+			});
+		};
 
+		function sendData(){
+			MongoClient.connect(URI, function(err, db){
+				if(!err){
+					console.log('connected to db, inserting fake profile...');
+					try{
+						db.collection('bandyUsers').insertOne(				
+						{
+							"name" : fields.name,
+							"photo" : files.photo,
+							"bio" : fields.bio,
+							"age" : fields.age,
+							"gender" : fields.gender,
+							"bands": fakeUserBands,
+							"bandIds": bandIds,
+							"relBandIds": relBandIds,
+							"allBandIds": allBandIds,
+							"loc" : userLocation,
+							"fake" : true
+						});					
+					}catch(e){
+						console.log(e)
+					};
+				}else{
+					console.log(err);
+				}
+			})		
+			res.redirect(303,'/list-profiles');
+		}
 	});
 });
 
@@ -271,9 +346,8 @@ console.log(loggedInUserLocation);
 						gender = doc.gender;
 						bands = doc.bands;
 						otherUserLocation = doc.loc.coordinates;
-						//console.log(otherUserLocation);
-						//console.log(loggedInUserLocation);
-						distance = haversineDistance(loggedInUserLocation, otherUserLocation, true)
+						distance = haversineDistance(loggedInUserLocation, otherUserLocation, true);
+						//TODO. user distance in view is DEV only. they dont need to see exact distance from each other.
 						
 						if(userName == loggedInUserName){
 							res.render('self',{
@@ -320,18 +394,21 @@ app.get('/edit', function(req,res){
 });
 
 app.get('/browse', function(req, res){
+	console.log("userBands = " + userBands);
 	if(user){
-		//res.render('browse');
 		console.log("your location = " + loggedInUserLocation);
 		console.log("matches.length = " + matches.length);
 		MongoClient.connect(URI, function(err,db){
 			if(!err){
 				db.collection('bandyUsers').find(
-				{loc: {$geoWithin:{$centerSphere:[loggedInUserLocation,10/3963.2]}}},
+				{
+					loc: {$geoWithin:{$centerSphere:[loggedInUserLocation,10/3963.2]}}, ///10 mile radius
+					allBandIds: {$in: userBands}
+				}, 
 				{_id:0,name:1}).toArray(function(err, docs){
 					if(!err){
 						docs.forEach(function(doc){
-							matches.push(doc.name);
+							if(doc.name !== loggedInUserName) matches.push(doc.name);
 						});
 						console.log("matches.length = " + matches.length);
 						res.redirect(302,'/profile/' + matches[0]);
@@ -351,8 +428,14 @@ app.get('/browse', function(req, res){
 
 app.get('/next-profile', function(req,res){
 	matchIndex ++;
-	if(loggedInUserName == matches[matchIndex]) matchIndex ++;
-	res.send(matches[matchIndex]);
+	//if(loggedInUserName == matches[matchIndex]) matchIndex ++; //loggedInUserName is not being added to matches array now
+	if(matchIndex < matches.length){
+		res.send('/profile/' + matches[matchIndex]);	
+	}else{
+		matches = [];
+		matchIndex = 0;
+		res.send('/browse')
+	}
 });
 
 
@@ -381,7 +464,7 @@ app.post('/user-locale', function(req,res){
 
 app.get('/add-bands', function(req, res){
 	if(user){
-		res.render('add-bands');
+		res.render('add-spotify-artists'); //was: add-bands
 	}else{
 		res.redirect('/')
 	};
@@ -390,15 +473,63 @@ app.get('/add-bands', function(req, res){
 app.post('/add-bands', function(req, res){
 	var bands = req.body.bands;
 	console.log(bands);
-	console.log(typeof bands);
-	MongoClient.connect(URI, function(err,db){
-		if(!err){
-			db.collection('bandyUsers').insertOne({
-				"userEmail" : auth.currentUser.email,
-				"bands" : bands
-			})
-		}
-	})
+	var bandIds = [];
+	var relBandIds = [];
+	var allBandIds = [];
+	var processedBands = 0;
+
+	bands.forEach(function(band){getRelated(band)});
+
+	function getRelated(band){
+		bandIds.push(band.spotifyId);
+		allBandIds.push(band.spotifyId);
+		request.post(authOptions, function(error, response, body) {
+			if (!error && response.statusCode === 200) {
+				var token = body.access_token;
+				var options = {
+					url: 'https://api.spotify.com/v1/artists/' + band.spotifyId + '/related-artists', 
+					headers: {
+						'Authorization': 'Bearer ' + token
+					},
+					json: true
+				};
+				request.get(options, function(err, response, body) {
+					if(!err){
+						var artists = body.artists;						
+						artists.forEach(function(artist){
+							relBandIds.push(artist.id);
+							allBandIds.push(artist.id);
+						})
+						processedBands++;
+						if(processedBands === bands.length){
+							sendData();
+						}
+					}else{
+						console.log(err);
+					}
+				});
+			}
+		});
+	};
+
+
+	function sendData(){ /// TODO: check if email already there, if so, update that document instead of making a new one.
+		MongoClient.connect(URI, function(err,db){
+			console.log("inserting into db...");
+			if(!err){
+				db.collection('bandyUsers').insertOne({
+					"userEmail" : auth.currentUser.email,
+					"bands" : bands,
+					"bandIds": bandIds,
+					"relBandIds": relBandIds,
+					"allBandIds": allBandIds
+				})
+			}else{
+				console.log(err);
+			}
+		})
+	};	
+	
 });
 
 app.get('/complete-profile', function(req,res){
@@ -428,7 +559,8 @@ app.post('/complete-profile', function(req,res){
 		console.log(fields);
 		console.log('recieved files: ');
 		console.log(files);
-		*/
+		*/	
+		
 		user.updateProfile({
 			displayName: fields.name,
 		}).then(function() {
@@ -472,7 +604,27 @@ app.post('/login', function(req, res) {
 	var errorMsg = function(e){
 		console.log(e.message);
 	};
-	signIn.then(function(){res.redirect('/user-map');}).catch(errorMsg);    
+	signIn.then(function(){
+		MongoClient.connect(URI, function(err, db){
+			if(!err){
+				db.collection('bandyUsers').findOne({"userEmail" : email}, function(err,doc){
+					if(!err){
+						doc.bandIds.forEach(function(id){userBands.push(id)});
+						//doc.relatedBands.forEach(function(band){userBands.push(band)});
+						loggedInUserLocation[0] = doc.loc.coordinates[0];
+						loggedInUserLocation[1] = doc.loc.coordinates[1];
+						console.log("added user\'s last location");
+					}else{
+						console.log(err)
+					};
+					res.redirect('/browse');
+				});
+			}else{
+				console.log(err)
+			};
+		});
+		//redirect to /browse was here...
+	}).catch(errorMsg);    
 });
   
 app.post('/sign-up', function(req, res) {

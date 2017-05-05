@@ -18,7 +18,8 @@
 			<ul>
 				{{#each bands}}
 					<li>
-						{{this}}
+						{{this.name}}
+						<!--img class="artistImage" src="{{this.artistImage}}"></img-->
 					</li>
 				{{/each}}
 			</ul>
@@ -41,7 +42,7 @@ $("#nextProfile").one('click', function(){
 		dataType: "text",
 		success: function(name){
 			console.log(name);
-			window.location.href = '/profile/' + name;
+			window.location.href = name;
 		}
 	});
 });
