@@ -604,7 +604,7 @@ app.post('/login', function(req, res) {
 					}else{
 						console.log(err)
 					};
-					res.redirect('/browse');
+					res.redirect('/edit'); //browse
 				});
 			}else{
 				console.log(err)
