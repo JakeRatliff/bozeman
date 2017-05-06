@@ -14,7 +14,6 @@ app.use(bodyParser.urlencoded({
 }));
 
 ///Russ Jones: "npm install jaccard" TODO
-
 app.use(require('express-session')({
     resave: false,
     saveUninitialized: false,
@@ -136,22 +135,7 @@ var authOptions = {
 //ROUTES//
 //////////
 app.get('/', function(req,res){	
-	request.post(authOptions, function(error, response, body) {
-		if (!error && response.statusCode === 200) {
-			var token = body.access_token;
-			var options = {
-				url: 'https://api.spotify.com/v1/artists/0OdUWJ0sBjDrqHygGUXeCF', //getting an artist 
-				headers: {
-					'Authorization': 'Bearer ' + token
-				},
-				json: true
-			};
-			request.get(options, function(error, response, body) {
-				console.log(body);
-				res.render('home',{user:user});
-			});
-		}
-	});
+	res.render('home',{user:user});
 });
 
 ////DEV TESTING ONLY NFP:

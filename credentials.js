@@ -1,14 +1,14 @@
 module.exports = {
 	//cookieSecret
-	cookieSecret: process.ENV.cookieSecret,
+	cookieSecret: process.env.cookieSecret,
 	//Spotify
-	spotifyClientId: process.ENV.spotifyClientId,
-	spotifyClientSecret: process.ENV.spotifyClientSecret,
+	spotifyClientId: process.env.spotifyClientId,
+	spotifyClientSecret: process.env.spotifyClientSecret,
 	spotifyRedirect_URI: 'http://localhost:3005/spotify-bands',
 
 	//Firebase
-	firebaseApiKey: process.ENV.firebaseApiKey,
-	firebaseAuthDomain: process.ENV.firebaseAuthDomain,	
-	firbaseDatabaseURL: process.ENV.firbaseDatabaseURL,
-	firebaseStorageBucket: process.ENV.firebaseStorageBucket,	
+	firebaseApiKey: process.env.firebaseApiKey,
+	firebaseAuthDomain: process.env.firebaseAuthDomain,	
+	firbaseDatabaseURL: process.env.firbaseDatabaseURL,
+	firebaseStorageBucket: process.env.firebaseStorageBucket,	
 }
