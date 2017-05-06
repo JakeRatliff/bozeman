@@ -370,13 +370,13 @@ console.log(loggedInUserLocation);
 });
 
 app.get('/edit', function(req,res){
-	MongoClient.connect(URI, function(err, db){
+	/*MongoClient.connect(URI, function(err, db){
 		if(!err){
 			console.log('connected to db');
 		}else{
 			console.log(err);
 		}
-	});
+	}); */
 	res.render('edit');
 });
 
