@@ -27,6 +27,9 @@ var firebaseConfig = {
   databaseURL: 		credentials.firebaseDatabaseURL,
   storageBucket: 	credentials.firebaseStorageBucket,
 };
+
+console.log(credentials.firebaseApiKey);
+
 firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var user;
