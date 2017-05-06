@@ -14,6 +14,10 @@ app.use(bodyParser.urlencoded({
 }));
 
 ///Russ Jones: "npm install jaccard" TODO
+
+var environment = process.env.environment;
+console.log("environment = " + environment);
+
 app.use(require('express-session')({
     resave: false,
     saveUninitialized: false,
@@ -451,11 +455,14 @@ app.post('/user-locale', function(req,res){
 
 app.get('/add-bands', function(req, res){
 	if(user){
+		if(environment == "production"){
+			res.render('add-spotify-artists-PROD');
+		}
 		res.render('add-spotify-artists'); //was: add-bands
 	}else{
 		res.redirect('/')
 	};
-})
+});
 
 app.post('/add-bands', function(req, res){
 	var bands = req.body.bands;
