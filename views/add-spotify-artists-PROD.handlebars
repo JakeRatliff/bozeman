@@ -24,7 +24,7 @@
 
     <script>
       (function() {	  
-
+		console.log("top of page script...");
 		function findImage(x){
 			for(i=0;i<x.length;i++){
 				if(175 < x[i]['height'] < 300){
@@ -80,36 +80,33 @@
         var access_token = params.access_token,
             state = params.state,
             storedState = localStorage.getItem(stateKey);
-
+				console.log("state = " + state);
+				console.log("storedState = " + storedState);
+				console.log("access_token = " + access_token);
         if (access_token && (state == null || state !== storedState)) {
-			console.log("state = " + state);
-			console.log("storedState = " + storedState);
-			console.log("access_token = " + access_token);
 			console.log('There was an error during the authentication');
         } else {
           localStorage.removeItem(stateKey);
           if (access_token) {
-            $.ajax({
-                url: 'https://api.spotify.com/v1/me/top/artists',
-				dataType: 'JSON',
-				//async: false,
-                headers: {
-                  'Authorization': 'Bearer ' + access_token
-                },
-                success: function(response) {
-						console.log(response);
-						response.items.forEach(function(i){
-							var imgIndex = findImage(i.images);
-							$('#bands').append("<img class='bandImage' src="+i.images[imgIndex].url+"></img>");
-							//was appending: <button class='btn addedBand'>"+i.name+
-							//"<span class='glyphicon glyphicon-remove'></span></button>
-							savedBands.push({"name" : i.name, "spotifyId": i.id, "artistImage": i.images[imgIndex].url});
-						});					
-						$('#login').hide();
-						$('#loggedin').show();
-						$('#continueButton').show();
-                }
-            });
+				$.ajax({
+					url: 'https://api.spotify.com/v1/me/top/artists',
+					headers: {
+					  'Authorization': 'Bearer ' + access_token
+					},
+					success: function(response) {
+							console.log(response);
+							response.items.forEach(function(i){
+								var imgIndex = findImage(i.images);
+								$('#bands').append("<img class='bandImage' src="+i.images[imgIndex].url+"></img>");
+								//was appending: <button class='btn addedBand'>"+i.name+
+								//"<span class='glyphicon glyphicon-remove'></span></button>
+								savedBands.push({"name" : i.name, "spotifyId": i.id, "artistImage": i.images[imgIndex].url});
+							});					
+							$('#login').hide();
+							$('#loggedin').show();
+							$('#continueButton').show();
+					}
+				});
 			}else{
 				$('#login').show();
 				$('#loggedin').hide();
@@ -117,9 +114,7 @@
 
         document.getElementById('login-button').addEventListener('click', function() {
 		  
-			localStorage.setItem("savedBands", JSON.stringify(savedBands));
-
-			
+			localStorage.setItem("savedBands", JSON.stringify(savedBands));			
 
             var client_id = 'bc80436ad194471c8a791c060649ecf9'; // Your client id
             var redirect_uri = 'https://bandfriend.herokuapp.com/added-bands'; // Your redirect uri

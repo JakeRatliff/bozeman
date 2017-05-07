@@ -4,7 +4,7 @@ module.exports = {
 	//Spotify
 	spotifyClientId: process.env.spotifyClientId,
 	spotifyClientSecret: process.env.spotifyClientSecret,
-	spotifyRedirect_URI: 'http://localhost:3005/spotify-bands',
+	//spotifyRedirect_URI: 'http://localhost:3005/spotify-bands',
 
 	//Firebase
 	firebaseApiKey: process.env.firebaseApiKey,

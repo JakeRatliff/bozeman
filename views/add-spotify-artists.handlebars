@@ -88,7 +88,6 @@
           if (access_token) {
             $.ajax({
                 url: 'https://api.spotify.com/v1/me/top/artists',
-				type: 'JSON',
                 headers: {
                   'Authorization': 'Bearer ' + access_token
                 },
