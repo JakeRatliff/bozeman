@@ -92,16 +92,17 @@
                   'Authorization': 'Bearer ' + access_token
                 },
                 success: function(response) {
-				  response.items.forEach(function(i){
+					response.items.forEach(function(i){
 						var imgIndex = findImage(i.images);
 						$('#bands').append("<img class='bandImage' src="+i.images[imgIndex].url+"></img>");
 						//was appending: <button class='btn addedBand'>"+i.name+
 						//"<span class='glyphicon glyphicon-remove'></span></button>
 						savedBands.push({"name" : i.name, "spotifyId": i.id, "artistImage": i.images[imgIndex].url});
-					});					
-                  $('#login').hide();
-                  $('#loggedin').show();
-				  $('#continueButton').show();
+					});
+					
+					$('#login').hide();
+					$('#loggedin').show();
+					$('#continueButton').show();
                 }
             });
           } else {
