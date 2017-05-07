@@ -82,7 +82,10 @@
             storedState = localStorage.getItem(stateKey);
 
         if (access_token && (state == null || state !== storedState)) {
-          alert('There was an error during the authentication');
+			console.log("state = " + state);
+			console.log("storedState = " + storedState);
+			console.log("access_token = " + access_token);
+			console.log('There was an error during the authentication');
         } else {
           localStorage.removeItem(stateKey);
           if (access_token) {
@@ -100,9 +103,9 @@
 							//"<span class='glyphicon glyphicon-remove'></span></button>
 							savedBands.push({"name" : i.name, "spotifyId": i.id, "artistImage": i.images[imgIndex].url});
 						});					
-					  $('#login').hide();
-					  $('#loggedin').show();
-					  $('#continueButton').show();
+						$('#login').hide();
+						$('#loggedin').show();
+						$('#continueButton').show();
                 }
             });
           } else {
