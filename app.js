@@ -464,6 +464,17 @@ app.get('/add-bands', function(req, res){
 	};
 });
 
+app.get('/added-bands', function(req, res){
+	if(user){
+		if(environment == "production"){
+			res.render('add-spotify-artists-PROD');
+		}
+		res.render('add-spotify-artists'); //was: add-bands
+	}else{
+		res.redirect('/')
+	};
+});
+
 app.post('/add-bands', function(req, res){
 	var bands = req.body.bands;
 	console.log(bands);
