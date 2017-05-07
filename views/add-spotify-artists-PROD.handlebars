@@ -88,6 +88,7 @@
         } else {
           localStorage.removeItem(stateKey);
           if (access_token) {
+				console.log("before the ajax request");
 				$.ajax({
 					url: 'https://api.spotify.com/v1/me/top/artists',
 					headers: {
@@ -107,6 +108,7 @@
 							$('#continueButton').show();
 					}
 				});
+				console.log("after the ajax request");
 			}else{
 				$('#login').show();
 				$('#loggedin').hide();
