@@ -453,16 +453,16 @@ app.post('/user-locale', function(req,res){
 });
 
 app.get('/add-bands', function(req, res){
-	if(user){
+	//if(user){  chasing down the bug....
 		if(environment == "production"){
 			//res.render('add-spotify-artists-PROD');
 			res.render('test');
 		}
 		//res.render('add-spotify-artists'); //was: add-bands
 		res.render('test2');
-	}else{
-		res.redirect('/')
-	};
+	//}else{
+		//res.redirect('/')
+	//};
 });
 
 app.get('/added-bands', function(req, res){
