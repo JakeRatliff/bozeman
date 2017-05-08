@@ -459,7 +459,8 @@ app.get('/add-bands', function(req, res){
 			//res.render('add-spotify-artists-PROD');
 			res.render('test');
 		}
-		res.render('add-spotify-artists'); //was: add-bands
+		//res.render('add-spotify-artists'); //was: add-bands
+		res.render('test2');
 	}else{
 		res.redirect('/')
 	};
