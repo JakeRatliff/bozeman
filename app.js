@@ -455,9 +455,10 @@ app.post('/user-locale', function(req,res){
 app.get('/add-bands', function(req, res){
 	//if(user){  chasing down the bug....
 		if(environment == "production"){
-			res.render('test')//'add-spotify-artists-PROD');
-		}
+			res.render('add-spotify-artists-PROD');
+		}else{
 		res.render('add-spotify-artists'); //was: add-bands
+		}
 	//}else{
 		//res.redirect('/')
 	//};
