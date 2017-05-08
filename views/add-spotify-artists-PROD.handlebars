@@ -86,57 +86,58 @@
         if (access_token && (state == null || state !== storedState)) {
 			console.log('There was an error during the authentication');
         }else{
-        localStorage.removeItem(stateKey);
-			if (access_token) {
-				console.log("before the ajax request"); //this isn't getting logged...
-				$.ajax({
-					url: 'https://api.spotify.com/v1/me/top/artists',
-					headers: {
-					  'Authorization': 'Bearer ' + access_token
-					},
-					success: function(response) {
-							console.log(response);
-							response.items.forEach(function(i){
-								var imgIndex = findImage(i.images);
-								$('#bands').append("<img class='bandImage' src="+i.images[imgIndex].url+"></img>");
-								//was appending: <button class='btn addedBand'>"+i.name+
-								//"<span class='glyphicon glyphicon-remove'></span></button>
-								savedBands.push({"name" : i.name, "spotifyId": i.id, "artistImage": i.images[imgIndex].url});
-							});					
-							$('#login').hide();
-							$('#loggedin').show();
-							$('#continueButton').show();
-					}
-				});
-				console.log("after the ajax request");
-			}else{
-				$('#login').show();
-				$('#loggedin').hide();
-			}
+			localStorage.removeItem(stateKey);
+				if (access_token) {
+					console.log("before the ajax request"); //this isn't getting logged...
+					$.ajax({
+						url: 'https://api.spotify.com/v1/me/top/artists',
+						headers: {
+						  'Authorization': 'Bearer ' + access_token
+						},
+						success: function(response) {
+								console.log(response);
+								response.items.forEach(function(i){
+									var imgIndex = findImage(i.images);
+									$('#bands').append("<img class='bandImage' src="+i.images[imgIndex].url+"></img>");
+									//was appending: <button class='btn addedBand'>"+i.name+
+									//"<span class='glyphicon glyphicon-remove'></span></button>
+									savedBands.push({"name" : i.name, "spotifyId": i.id, "artistImage": i.images[imgIndex].url});
+								});					
+								$('#login').hide();
+								$('#loggedin').show();
+								$('#continueButton').show();
+						}
+					});
+					console.log("after the ajax request");
+				}else{
+					console.log("...no access_token");
+					$('#login').show();
+					$('#loggedin').hide();
+				}
 
-        document.getElementById('login-button').addEventListener('click', function() {
-			console.log("after login-button click");
-			localStorage.setItem("savedBands", JSON.stringify(savedBands));			
+			document.getElementById('login-button').addEventListener('click', function() {
+				console.log("after login-button click");
+				localStorage.setItem("savedBands", JSON.stringify(savedBands));			
 
-            var client_id = 'bc80436ad194471c8a791c060649ecf9'; // Your client id
-            var redirect_uri = 'https://bandfriend.herokuapp.com/added-bands'; // Your redirect uri
+				var client_id = 'bc80436ad194471c8a791c060649ecf9'; // Your client id
+				var redirect_uri = 'https://bandfriend.herokuapp.com/added-bands'; // Your redirect uri
 
-            var state = generateRandomString(16);
+				var state = generateRandomString(16);
 
-            localStorage.setItem(stateKey, state);
-            var scope = 'user-top-read';
+				localStorage.setItem(stateKey, state);
+				var scope = 'user-top-read';
 
-            var url = 'https://accounts.spotify.com/authorize';
-            url += '?response_type=token';
-            url += '&client_id=' + encodeURIComponent(client_id);
-            url += '&scope=' + encodeURIComponent(scope);
-            url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
-            url += '&state=' + encodeURIComponent(state);
-			console.log("after URL parameter build");
-			//continueButton();
-            window.location = url;
-			console.log("after window.location = url");
-          }, false);
+				var url = 'https://accounts.spotify.com/authorize';
+				url += '?response_type=token';
+				url += '&client_id=' + encodeURIComponent(client_id);
+				url += '&scope=' + encodeURIComponent(scope);
+				url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
+				url += '&state=' + encodeURIComponent(state);
+				console.log("after URL parameter build");
+				//continueButton();
+				window.location = url;
+				console.log("after window.location = url");
+			}, false);
         }
 		
 		$("#addBand").on('click',function(){
