@@ -85,7 +85,7 @@ var jakesDevLogger = function(req, res, next){
 	next();
 };
 app.use(jakesDevLogger);
-
+/* turning off in an effort to track down the bug....
 app.use(function(req, res, next) {
     if(res && auth.currentUser){
 		res.locals.userEmail = auth.currentUser.email;
@@ -96,7 +96,7 @@ app.use(function(req, res, next) {
 	} 
     next();
 });
-
+*/
 //calculates distance "as the crow flies" between two coordinates
 function haversineDistance(coords1, coords2, isMiles) {
   function toRad(x) {
