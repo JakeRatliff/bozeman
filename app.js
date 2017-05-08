@@ -12,6 +12,7 @@ app.use(bodyParser.json() );
 app.use(bodyParser.urlencoded({
     extended: true
 }));
+var cloudinary = require('cloudinary');
 
 ///Russ Jones: "npm install jaccard" TODO
 
@@ -542,8 +543,14 @@ app.post('/complete-profile', function(req,res){
     console.log("--FORM--");
 	
 	form.on('fileBegin', function(name, file) {
-		var date = +new Date();
-		file.path = form.uploadDir + "/" + date + "-" + file.name;
+		if(environment == "local"){
+			var date = +new Date();
+			file.path = form.uploadDir + "/" + date + "-" + file.name;			
+		}else{
+			cloudinary.uploader.upload(file.name, function(result) { 
+				console.log(result) 
+			});			
+		}
 	});
 
 	form.parse(req, function(err, fields, files){
