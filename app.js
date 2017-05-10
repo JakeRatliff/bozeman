@@ -14,6 +14,12 @@ app.use(bodyParser.urlencoded({
 }));
 var cloudinary = require('cloudinary');
 
+cloudinary.config({ 
+  cloud_name: credentials.cloud_name, 
+  api_key: credentials.cloud_api_key, 
+  api_secret: credentials.cloud_api_secret 
+});
+
 ///Russ Jones: "npm install jaccard" TODO
 
 var environment = process.env.environment;
@@ -42,6 +48,13 @@ var loggedInUserLocation= [];
 var loggedInUserName;
 var matches = [];
 var matchIndex = 0;
+
+var spotify = {
+	clientId: credentials.spotifyClientId,
+	clientSecret: credentials.spotifyClientSecret
+};
+
+console.log("spotify client id = " + spotify.clientId);
 
 var userBands = [];
 
@@ -125,18 +138,26 @@ function haversineDistance(coords1, coords2, isMiles) {
   return d;
 }
 
+//console.log('bc80436ad194471c8a791c060649ecf9' + ':' + 'f5cdf05bc7ba449cad0c3fb193f557d5' === spotify.clientId + ':' + spotify.clientSecret);
+/*
+console.log('bc80436ad194471c8a791c060649ecf9' === spotifyClientId);
+console.log('f5cdf05bc7ba449cad0c3fb193f557d5' === spotifyClientSecret);
+console.log('bc80436ad194471c8a791c060649ecf9' + ' ' + spotifyClientId);
+console.log('f5cdf05bc7ba449cad0c3fb193f557d5' + ' ' + spotifyClientSecret);
+console.log(typeof 'bc80436ad194471c8a791c060649ecf9' + ' ' + typeof spotifyClientId);
+console.log(typeof 'f5cdf05bc7ba449cad0c3fb193f557d5' + ' ' + typeof spotifyClientSecret);
+*/
 //for Spotify client credentials auth:
 var authOptions = {
   url: 'https://accounts.spotify.com/api/token',
   headers: {
-	'Authorization': 'Basic ' + (new Buffer(credentials.spotifyClientId + ':' + credentials.spotifyClientSecret).toString('base64'))
+	'Authorization': 'Basic ' + (new Buffer(spotify.clientId + ':' + spotify.clientSecret).toString('base64'))
   },
   form: {
 	grant_type: 'client_credentials'
   },
   json: true
 };
-
 
 //////////
 //ROUTES//
@@ -152,7 +173,6 @@ app.get('/make-fake', function(req, res){
 
 app.get('/user-map',function(req,res){
 	res.render('map');
-
 });
 
 app.get('/user-locs', function(req, res){
@@ -180,48 +200,37 @@ app.post('/make-fake', function(req,res){
 	var bandIds = [];
 	var relBandIds = [];
 	var allBandIds = [];
-	processedBands = 0;
-	
+	var processedBands = 0;
+	var name, bio, age, gender, image, imgUrl, userLocation;
+	var form = new formidable.IncomingForm();	
 	fakeUserBands.forEach(function(band){
 		bandIds.push(band.spotifyId);
 		allBandIds.push(band.spotifyId);
-	});
-
-
-	var form = new formidable.IncomingForm();	
-	form.uploadDir = __dirname + '/uploads';
+	});	
+	//form.uploadDir = __dirname + '/uploads';
     console.log("--FORM--");	
-	
+	/*
 	form.on('fileBegin', function(name, file) {
 		var date = +new Date();
 		file.path = form.uploadDir + "/" + date + "-" + file.name;
 	})
-
+	*/
 	form.parse(req, function(err, fields, files){
 		if(err) return res.redirect(303, '/');
-		
+		/*		
 		console.log('recieved fields: ');
 		console.log(fields);
-		/*
 		console.log('recieved files: ');
 		console.log(files);
 		*/
+		name = fields.name;
+		age = fields.age;
+		gender = fields.gender;
+		bio = fields.bio;
+		image = files.photo.path;
 		
-		fakeUserBands.forEach(function(band){
-			getRelated(band)
-		});
-	
-		
-		var userLocation;
-		
-		var fakedCoords = function(){ //{"lon": -79.0558, "lat": 35.9132};
-			function posNeg(){
-				var plusOrMinus = Math.random() < 0.5 ? -1 : 1; return plusOrMinus
-				};		
-			var lon = -79.00 + (Math.random()*.1*posNeg());
-			var lat = 35.94 + (Math.random()*.1*posNeg());
-			return {type: "Point", coordinates:[lon,lat]};		
-		}
+		sendToCloud(image)
+		.then(getRelatedIds);
 		
 		if(fields.specificCoords){
 			console.log("there are specified coords");
@@ -231,66 +240,88 @@ app.post('/make-fake', function(req,res){
 		}else{
 			userLocation = fakedCoords();
 		};
-		
-		function getRelated(band){
-			request.post(authOptions, function(error, response, body) {
-				if (!error && response.statusCode === 200) {
-					var token = body.access_token;
-					var options = {
-						url: 'https://api.spotify.com/v1/artists/' + band.spotifyId + '/related-artists', 
-						headers: {
-							'Authorization': 'Bearer ' + token
-						},
-						json: true
-					};
-					request.get(options, function(err, response, body) {
-						if(!err){
-							var artists = body.artists;						
-							artists.forEach(function(artist){
-								relBandIds.push(artist.id);
-								allBandIds.push(artist.id);
-							})
-							processedBands++;
-							if(processedBands === fakeUserBands.length){
-								sendData();
-							}
-						}else{
-							console.log(err);
-						}
-					});
-				}
-			});
-		};
-
-		function sendData(){
-			MongoClient.connect(URI, function(err, db){
-				if(!err){
-					console.log('connected to db, inserting fake profile...');
-					try{
-						db.collection('bandyUsers').insertOne(				
-						{
-							"name" : fields.name,
-							"photo" : files.photo,
-							"bio" : fields.bio,
-							"age" : fields.age,
-							"gender" : fields.gender,
-							"bands": fakeUserBands,
-							"bandIds": bandIds,
-							"relBandIds": relBandIds,
-							"allBandIds": allBandIds,
-							"loc" : userLocation,
-							"fake" : true
-						});					
-					}catch(e){
-						console.log(e)
-					};
-				}else{
-					console.log(err);
-				}
-			})		
-			res.redirect(303,'/list-profiles');
-		}
 	});
+	function getRelatedIds(){
+		fakeUserBands.forEach(function(band){
+			getRelated(band)
+		});
+	};
+	var fakedCoords = function(){ //{"lon": -79.0558, "lat": 35.9132};
+		function posNeg(){
+			var plusOrMinus = Math.random() < 0.5 ? -1 : 1; return plusOrMinus
+			};		
+		var lon = -79.00 + (Math.random()*.1*posNeg());
+		var lat = 35.94 + (Math.random()*.1*posNeg());
+		return {type: "Point", coordinates:[lon,lat]};		
+	}
+	function getRelated(band){
+		request.post(authOptions, function(error, response, body) {
+			if (!error && response.statusCode === 200) {
+				var token = body.access_token;
+				var options = {
+					url: 'https://api.spotify.com/v1/artists/' + band.spotifyId + '/related-artists', 
+					headers: {
+						'Authorization': 'Bearer ' + token
+					},
+					json: true
+				};
+				request.get(options, function(err, response, body) {
+					if(!err){
+						var artists = body.artists;						
+						artists.forEach(function(artist){
+							relBandIds.push(artist.id);
+							allBandIds.push(artist.id);
+						})
+						processedBands++;
+						if(processedBands === fakeUserBands.length){
+							sendData();
+						}
+					}else{
+						console.log(err);
+					}
+				});
+			}else{
+				console.log(response.statusCode);
+			}
+		});
+	};
+	function sendToCloud(file){
+		console.log("sending to cloudinary");
+		return new Promise(function(resolve, reject){
+			cloudinary.uploader.upload(file, function(result){
+				console.log(result);
+				imgUrl = result.secure_url;
+				resolve();
+			});
+		});
+	};
+	function sendData(){
+		MongoClient.connect(URI, function(err, db){
+			if(!err){
+				console.log('connected to db, inserting fake profile...');
+				try{
+					db.collection('bandyUsers').insertOne({
+						"name" : name,
+						"photo" : imgUrl,
+						"bio" : bio,
+						"age" : age,
+						"gender" : gender,
+						"bands": fakeUserBands,
+						"bandIds": bandIds,
+						"relBandIds": relBandIds,
+						"allBandIds": allBandIds,
+						"loc" : userLocation,
+						"fake" : true
+					});					
+				}catch(e){
+					console.log(e)
+				};
+			}else{
+				console.log(err);
+			}
+		})		
+		res.redirect(303,'/list-profiles');
+	}
 });
 
 //NOT FOR PRODUCTION:
@@ -330,7 +361,7 @@ console.log(loggedInUserLocation);
 			if(!err){			
 				db.collection('bandyUsers').findOne({"name" : userName}, function(err,doc){
 					if(!err){
-						imageSrc = doc.photo.path.slice(doc.photo.path.indexOf('uploads'));						
+						imageSrc = doc.photo;//photo.path.slice(doc.photo.path.indexOf('uploads'));						
 						userName = doc.name;
 						bio = doc.bio;
 						age = doc.age;
@@ -503,13 +534,16 @@ app.post('/add-bands', function(req, res){
 						console.log(err);
 					}
 				});
+			}else{
+				console.log(response.statusCode); ///getting '400' bad request. ...fix this in the a.m.
+				res.send("<h4>Spotify Request Failed.</h4>");
 			}
 		});
 	};
 
-
 	function sendData(){ /// TODO: check if email already there, if so, update that document instead of making a new one.
 		MongoClient.connect(URI, function(err,db){
+			console.log("current user email = " + auth.currentUser.email);
 			console.log("inserting into db...");
 			if(!err){
 				db.collection('bandyUsers').insertOne({
@@ -518,7 +552,8 @@ app.post('/add-bands', function(req, res){
 					"bandIds": bandIds,
 					"relBandIds": relBandIds,
 					"allBandIds": allBandIds
-				})
+				});
+				res.send({redirect : '/complete-profile'});
 			}else{
 				console.log(err);
 			}
@@ -536,64 +571,59 @@ app.get('/complete-profile', function(req,res){
 });
 
 app.post('/complete-profile', function(req,res){
-	// ...
-	var form = new formidable.IncomingForm();
-	
-	form.uploadDir = __dirname + '/uploads';
     console.log("--FORM--");
-	
-	form.on('fileBegin', function(name, file) {
-		if(environment == "local"){
-			var date = +new Date();
-			file.path = form.uploadDir + "/" + date + "-" + file.name;			
-		}else{
-			cloudinary.uploader.upload(file.name, function(result) { 
-				console.log(result) 
-			});			
-		}
-	});
-
+	var form = new formidable.IncomingForm();
+	var name, bio, age, gender, image, imgUrl;	
 	form.parse(req, function(err, fields, files){
-		if(err) return res.redirect(303, '/');
-		/*
-		console.log('recieved fields: ');
-		console.log(fields);
-		console.log('recieved files: ');
-		console.log(files);
-		*/	
-		
-		user.updateProfile({
-			displayName: fields.name,
-		}).then(function() {
-			// Update successful.
-			console.log("user display name updated in Firebase, now adding to MongoDB and redirecting...");
-				MongoClient.connect(URI, function(err, db){
-					if(!err){
-						console.log('connected to db, updating document...');
-						try{
-							db.collection('bandyUsers').updateOne({"userEmail":auth.currentUser.email},				
-							{$set:{
-								"name" : fields.name,
-								"photo" : files.photo,
-								"bio" : fields.bio,
-								"age" : fields.age,
-								"gender" : fields.gender
-							}});					
-						}catch(e){
-							console.log(e)
-						};
-					}else{
-						console.log(err);
-					}
-				})		
-				res.redirect(303,'/edit');
-			}, function(error) {
-			  // An error happened.
-			  console.log(error);
+		if(err) console.log(err);
+		name = fields.name;
+		bio = fields.bio;
+		age = fields.age;
+		gender = fields.gender;
+		image = files.photo.path;
+		sendToCloud(image).then(sendData);
+	});		
+	function sendToCloud(file){
+		console.log("sending to cloudinary");
+		return new Promise(function(resolve, reject){
+			cloudinary.uploader.upload(file, function(result){
+				console.log(result);
+				imgUrl = result.secure_url;
+				resolve();
+			});
 		});
-		
-
-	});
+	};	
+	function sendData(){
+		console.log("user display name updated in Firebase, now adding to MongoDB and redirecting...");
+		MongoClient.connect(URI, function(err, db){
+			if(!err){
+				console.log('connected to db, updating this users profile...');
+				console.log('imgUrl inside sendData = ' + imgUrl);
+				console.log('current user email = ' + auth.currentUser.email);
+				try{
+					db.collection('bandyUsers').updateOne({"userEmail":auth.currentUser.email},				
+					{$set:{
+						"name" : name,
+						"photo" : imgUrl,
+						"bio" : bio,
+						"age" : age,
+						"gender" : gender
+					}}, function(err, result){
+						if(err) console.log(err);
+						console.log(result);
+					});
+					console.log("bottom of the $set");
+					user.updateProfile({
+						displayName: name
+					}).then(res.redirect(303,'/edit'));
+				}catch(e){
+					console.log(e)
+				};
+			}else{
+				console.log(err);
+			}
+		})		
+	}
 });
 
 //Authentication. TODO: optimize sign up and login flow, add Google and FB login as first options.

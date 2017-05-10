@@ -171,9 +171,11 @@
 			$.ajax({
 				method:"POST",
 				url: "/add-bands",
-				data: {"bands" : savedBands},
-				success: window.location = '/complete-profile'
-			})
+				//dataType: "json",
+				data: {"bands" : savedBands}
+			}).done(function(response){
+				window.location.href = response.redirect;
+			});
 		}
 		
 		$("#continueButton").one('click', nextStep);
