@@ -82,18 +82,18 @@ app.set('view engine', 'handlebars');
 //mongodb:
 var MongoClient = require('mongodb').MongoClient;
 var URI = process.env.mongoURI_band;
-if(environment == 'production') console.log("equality check for DB...  \n" + process.env.mongoURI_band === process.env.MONGODB_URI);
+if(environment == 'production') URI = process.env.MONGODB_URI;
 
 console.log("database location  = " + URI);
 var ObjectId = require('mongodb').ObjectID;
-/*
+
 MongoClient.connect(URI, function(err,db){
 	if(!err){
 		console.log("connected to database!");
 	}else{
 		console.log(err)
 	}
-});*/
+});
 
 var jakesDevLogger = function(req, res, next){
 	//var user = auth.currentUser;
