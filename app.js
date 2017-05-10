@@ -85,6 +85,14 @@ var URI = process.env.mongoURI_band;
 console.log("database location  = " + URI);
 var ObjectId = require('mongodb').ObjectID;
 
+MongoClient.connect(URI, function(err,db){
+	if(!err){
+		console.log("connected to database!");
+	}else{
+		console.log(err)
+	}
+});
+
 var jakesDevLogger = function(req, res, next){
 	//var user = auth.currentUser;
 	//if(user) user = user.email;
