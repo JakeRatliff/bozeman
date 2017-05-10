@@ -47,7 +47,7 @@
 				map: map,
 			});
 			var infoWindow = new google.maps.InfoWindow({
-				content: "<a href='bandfriendapp.herokuapp.com/profile/"+coord.content+"'>"+coord.content+"</a>"
+				content: "<a href='/profile/"+coord.content+"'>"+coord.content+"</a>"
 			});
 			marker.addListener('click', function() {
 				infoWindow.open(map, marker);
