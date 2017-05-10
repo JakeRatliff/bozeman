@@ -23,6 +23,7 @@ cloudinary.config({
 ///Russ Jones: "npm install jaccard" TODO
 
 var environment = process.env.environment;
+
 console.log("environment = " + environment);
 
 app.use(require('express-session')({
@@ -148,15 +149,6 @@ function haversineDistance(coords1, coords2, isMiles) {
   return d;
 }
 
-//console.log('bc80436ad194471c8a791c060649ecf9' + ':' + 'f5cdf05bc7ba449cad0c3fb193f557d5' === spotify.clientId + ':' + spotify.clientSecret);
-/*
-console.log('bc80436ad194471c8a791c060649ecf9' === spotifyClientId);
-console.log('f5cdf05bc7ba449cad0c3fb193f557d5' === spotifyClientSecret);
-console.log('bc80436ad194471c8a791c060649ecf9' + ' ' + spotifyClientId);
-console.log('f5cdf05bc7ba449cad0c3fb193f557d5' + ' ' + spotifyClientSecret);
-console.log(typeof 'bc80436ad194471c8a791c060649ecf9' + ' ' + typeof spotifyClientId);
-console.log(typeof 'f5cdf05bc7ba449cad0c3fb193f557d5' + ' ' + typeof spotifyClientSecret);
-*/
 //for Spotify client credentials auth:
 var authOptions = {
   url: 'https://accounts.spotify.com/api/token',
@@ -182,7 +174,11 @@ app.get('/make-fake', function(req, res){
 });
 
 app.get('/user-map',function(req,res){
-	res.render('map');
+	if(environment == 'local'){
+		res.render('map');
+	}else{
+		res.render('map-PROD');
+	}
 });
 
 app.get('/user-locs', function(req, res){
