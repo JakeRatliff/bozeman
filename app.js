@@ -445,7 +445,11 @@ app.get('/browse', function(req, res){
 							if(doc.name !== loggedInUserName) matches.push(doc.name);
 						});
 						console.log("matches.length = " + matches.length);
-						res.redirect(302,'/profile/' + matches[0]);
+						if(matches.length > 0){
+							res.redirect(302,'/profile/' + matches[0]);
+						}else{
+							res.send("<h3>No matches at this time, check back later.</h3>");
+						}
 					}else{
 						console.log(err)
 					};
