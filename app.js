@@ -71,11 +71,12 @@ auth.onAuthStateChanged(function(firebaseUser){
 	}
 });
 
-///NFP - TODO:::
+/*//NFP - TODO:::
 console.log("logging user out...");
 auth.signOut().then(function(){
 	console.log("user has been logged out by server.");
 });
+*/
 
 app.use('/uploads', express.static(__dirname + "/uploads"));
 
@@ -663,7 +664,12 @@ app.post('/send-message', function(req, res){
 			db.collection('bandyUsers').findOneAndUpdate(
 				{"name": reciever}, 
 				{$addToSet: 
-					{ "messages": {"date": date, "sender": loggedInUserName, "message": message}}
+					{ "messages": {
+						"date": date, 
+						"sender": loggedInUserName, 
+						"message": message, 
+						"seen": false
+					}}
 				}
 			);
 		}else{
