@@ -94,7 +94,7 @@
                 success: function(response) {
 					response.items.forEach(function(i){
 						var imgIndex = findImage(i.images);
-						$('#bands').append("<img class='bandImage' src="+i.images[imgIndex].url+"></img>");
+						$('#bands').append("<span class='image'><img class='bandImg' src="+i.images[imgIndex].url+"><div class='name'>"+i.name+"</div></span>");
 						//was appending: <button class='btn addedBand'>"+i.name+
 						//"<span class='glyphicon glyphicon-remove'></span></button>
 						savedBands.push({"name" : i.name, "spotifyId": i.id, "artistImage": i.images[imgIndex].url});
@@ -197,8 +197,21 @@
 			border-radius:20px;
 			margin: 5px;
 		}
-		
-		.bandImage{
+		.bandImg{
 			height: 175px;
 		}
+		.image{
+			position:relative;
+			text-align:center;
+			float: left;		
+		}
+		.name{
+			color: white;
+			background-color: black;
+		    left: 0;
+			position:absolute;
+			bottom: 30px;
+			width: 100%;
+		}
+
 	</style>

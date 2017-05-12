@@ -1,0 +1,18 @@
+<h3>Messages</h3>
+{{#if messages}}
+{{#each messages}}
+<div class="messageInfo">
+	<li>{{this.sender}}</li>
+	<li>{{this.date}}</li>
+	<li>{{this.message}}</li>
+</div>
+{{/each}}
+{{else}}
+<p>You have no recent messages.</p>
+{{/if}}
+
+<style>
+.messageInfo{
+	border: 1px solid grey;
+}
+</style>

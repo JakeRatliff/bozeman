@@ -1,6 +1,6 @@
 <div class="container">
 
-	<h1>{{userName}}</h1>
+	<h1 id="userName">{{userName}}</h1>
 	<div>
 		{{#if imgUrl}}
 			<img style="height:150px;border-radius:3px;" src="{{imgUrl}}">
@@ -27,14 +27,39 @@
 	{{#if age}}<p><strong>Age:</strong> {{age}}</p>{{/if}}
 	{{#if gender}}<p><strong>Gender:</strong> {{gender}}</p>{{/if}} <!-- TODO: CONSIDER MAKING THIS GENDERLESS -->
 	<button  style="display:none" class="btn btn-large btn-info"id="seeBands">See Favorite Bands</button>
+	<div id="messageBox">
+		<input id="messageText" type=text>
+	</div>
+	<button id="sendMessage" class="btn btn-large">Send Message</button>
 	<button id="nextProfile" class="btn btn-large">Next Profile</button>
+	<button id="cancelMessage" class="btn btn-large">Cancel Message</button>
+	
 
 </div>
 
+<style>
+
+#cancelMessage{
+	display: none;
+}
+#messageBox{
+	display: none;
+	height: 150px;
+}
+#messageText{
+	height: 135px;
+	width: 90%;
+}
+</style>
+
 <script>
 
-$("#nextProfile").one('click', function(){
-	console.log("you clicked next");
+var messageBox = $("#messageBox");
+var cancelMessage = $("#cancelMessage");
+var nextProfile = $("#nextProfile");
+var sendMessage = $("#sendMessage");
+
+nextProfile.one('click', function(){
 	$.ajax({
 		method: "GET",
 		url: "/next-profile",
@@ -46,5 +71,43 @@ $("#nextProfile").one('click', function(){
 		}
 	});
 });
+
+sendMessage.on('click', function(){
+	console.log("yep, clicked");
+	if(messageBox.is(':visible')){
+		//send the message
+		var message = $("#messageText").val();
+		var reciever = $("#userName").text();
+		console.log(message);
+		console.log('fixin to send the message for ya');
+		$.ajax({
+			method: "POST",
+			url: "/send-message",
+			data: {
+			"message" : message,
+			"reciever" : reciever
+			}
+		}).done(function(response){
+			console.log(response);
+		});
+		cancelMessage.hide();
+		nextProfile.show();
+	}else{
+		cancelMessage.show();
+		nextProfile.hide();
+		messageBox.show();
+	}
+	
+cancelMessage.on('click', function(){
+	messageBox.hide();
+	$(this).hide();
+	nextProfile.show();
+});
+
+	
+
+});
+
+
 
 </script>

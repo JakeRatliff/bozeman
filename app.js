@@ -71,6 +71,11 @@ auth.onAuthStateChanged(function(firebaseUser){
 	}
 });
 
+///NFP - TODO:::
+console.log("logging user out...");
+auth.signOut().then(function(){
+	console.log("user has been logged out by server.");
+});
 
 app.use('/uploads', express.static(__dirname + "/uploads"));
 
@@ -541,7 +546,7 @@ app.post('/add-bands', function(req, res){
 					}
 				});
 			}else{
-				console.log(response.statusCode); ///getting '400' bad request. ...fix this in the a.m.
+				console.log(response.statusCode);
 				res.send("<h4>Spotify Request Failed.</h4>");
 			}
 		});
@@ -632,7 +637,82 @@ app.post('/complete-profile', function(req,res){
 	}
 });
 
+app.get('/messages', function(req, res){
+	var messages = [];
+	MongoClient.connect(URI, function(err, db){
+		if(!err){
+			db.collection('bandyUsers').findOne({name: loggedInUserName}, {messages:1}, function(err, doc){
+				doc.messages.forEach(function(message){messages.push(message)});
+			});
+			res.render('messages', {messages:messages});
+		}else{
+			console.log(err)
+		}
+	});
+	
+});
+
+app.post('/send-message', function(req, res){
+	var date = new Date();
+	var message = req.body.message;
+	var reciever = req.body.reciever;
+	console.log(message);
+	console.log(reciever);
+	MongoClient.connect(URI, function(err,db){
+		if(!err){
+			db.collection('bandyUsers').findOneAndUpdate(
+				{"name": reciever}, 
+				{$addToSet: 
+					{ "messages": {"date": date, "sender": loggedInUserName, "message": message}}
+				}
+			);
+		}else{
+			console.log(err);
+		}
+	});
+});
+
 //Authentication. TODO: optimize sign up and login flow, add Google and FB login as first options.
+
+app.post('/google-sign-in', function(req, res){
+	//console.log("top of google sign in route");
+	//console.log(req.body);
+	var id_token = req.body.id_token;
+	// Build Firebase credential with the Google ID token.
+	var credential = firebase.auth.GoogleAuthProvider.credential(id_token);
+	// Sign in with credential from the Google user.
+	firebase.auth().signInWithCredential(credential)
+	.then(function(){
+		var userEmail = auth.currentUser.email;
+		MongoClient.connect(URI, function(err,db){
+			if(!err){
+				db.collection('bandyUsers').findOne({"userEmail" : userEmail}, function(err,doc){
+					if(doc && doc.userEmail){
+						console.log("this user email is already in the db...");
+						res.send({"newUser": false});
+					}else{
+						console.log("this user email is new to the db...");
+						res.send({"newUser": true});
+					}
+
+				});
+			}else{
+				console.log(err)
+			}
+		});
+	})
+	.catch(function(error) {
+		// Handle Errors here.
+		var errorCode = error.code;
+		var errorMessage = error.message;
+		// The email of the user's account used.
+		var email = error.email;
+		// The firebase.auth.AuthCredential type that was used.
+		var credential = error.credential;
+		// ...
+	});
+});
+
 app.post('/login', function(req, res) {
 	console.log("logging user in...");
 	var email = req.body.email;
@@ -661,7 +741,7 @@ app.post('/login', function(req, res) {
 			};
 		});
 		//redirect to /browse was here...
-	}).catch(errorMsg);    
+	}).catch(errorMsg);
 });
   
 app.post('/sign-up', function(req, res) {
