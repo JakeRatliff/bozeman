@@ -643,13 +643,15 @@ app.post('/complete-profile', function(req,res){
 });
 
 app.get('/messages', function(req, res){
-	var messages = [];
+	//var messages = [];
+	var messages;
 	MongoClient.connect(URI, function(err, db){
 		if(!err){
 			db.collection('bandyUsers').findOne({name: loggedInUserName}, {messages:1}, function(err, doc){
-				if(doc.messages) doc.messages.forEach(function(message){messages.push(message)});
+				//if(doc.messages) doc.messages.forEach(function(message){messages.push(message)});
+				messages = doc.messages;
+				res.render('messages', {messages:messages});
 			});
-			res.render('messages', {messages:messages});
 		}else{
 			console.log(err)
 		}
