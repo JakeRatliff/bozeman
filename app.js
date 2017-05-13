@@ -653,8 +653,7 @@ app.get('/messages', function(req, res){
 		}else{
 			console.log(err)
 		}
-	});
-	
+	});	
 });
 
 app.post('/send-message', function(req, res){
@@ -734,7 +733,7 @@ app.post('/login', function(req, res) {
 	signIn.then(function(){
 		MongoClient.connect(URI, function(err, db){
 			if(!err){
-				db.collection('bandyUsers').findOne({"userEmail" : email}, function(err,doc){
+				db.collection('bandyUsers').findOne({"userEmail" : auth.currentUser.email}, function(err,doc){
 					if(!err){
 						doc.bandIds.forEach(function(id){userBands.push(id)});
 						//doc.relatedBands.forEach(function(band){userBands.push(band)});
@@ -789,5 +788,5 @@ app.use(function(err, req, res, next){
 });
 
 app.listen(app.get('port'), function(){
-    console.log('Express started on http://localhost:'+ app.get('port') + '; Press ctrl-C to terminate.')
+	if(environment == "local") console.log('Express started on http://localhost:'+ app.get('port') + '; Press ctrl-C to terminate.')
 });
