@@ -647,7 +647,7 @@ app.get('/messages', function(req, res){
 	MongoClient.connect(URI, function(err, db){
 		if(!err){
 			db.collection('bandyUsers').findOne({name: loggedInUserName}, {messages:1}, function(err, doc){
-				doc.messages.forEach(function(message){messages.push(message)});
+				if(doc.messages) doc.messages.forEach(function(message){messages.push(message)});
 			});
 			res.render('messages', {messages:messages});
 		}else{
