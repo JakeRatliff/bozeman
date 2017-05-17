@@ -123,7 +123,7 @@ app.use(function(req, res, next) {
 		navPhoto = tinyFace(navPhoto);
 		res.locals.navPhoto = navPhoto;
 		res.locals.userEmail = auth.currentUser.email;
-		if(auth.currentUser.displayName){
+		if(completedProfile && auth.currentUser.displayName){
 			loggedInUserName = auth.currentUser.displayName;
 			res.locals.loggedInUserName = loggedInUserName;
 		} 		
@@ -768,7 +768,6 @@ app.post('/login', function(req, res) {
 						doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});
 						if(doc.completedProfile){
 							console.log("This user has completed their profile.");
-							user = doc.name;
 							completedProfile = true;
 						}
 						if(doc.photo){
