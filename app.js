@@ -768,6 +768,7 @@ app.post('/login', function(req, res) {
 						doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});
 						if(doc.completedProfile){
 							console.log("This user has completed their profile.");
+							user = doc.name;
 							completedProfile = true;
 						}
 						if(doc.photo){
