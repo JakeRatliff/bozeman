@@ -777,10 +777,11 @@ app.post('/login', function(req, res) {
 						loggedInUserLocation[0] = doc.loc.coordinates[0];
 						loggedInUserLocation[1] = doc.loc.coordinates[1];
 						console.log("added user\'s last location");
+						res.redirect('/');
 					}else{
 						console.log(err)
 					};
-					res.redirect('/');
+					//res.redirect('/');
 				});
 			}else{
 				console.log(err)
