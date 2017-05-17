@@ -7,20 +7,18 @@ var bodyParser = require('body-parser');
 var request = require('request'); // "Request" library
 var querystring = require('querystring');
 var formidable = require('formidable');
+var jaccard = require('jaccard');
 app.use(cookieParser);
 app.use(bodyParser.json() );
 app.use(bodyParser.urlencoded({
     extended: true
 }));
 var cloudinary = require('cloudinary');
-
 cloudinary.config({ 
   cloud_name: credentials.cloud_name, 
   api_key: credentials.cloud_api_key, 
   api_secret: credentials.cloud_api_secret 
 });
-
-///Russ Jones: "npm install jaccard" TODO
 
 var environment = process.env.environment;
 
@@ -58,6 +56,10 @@ var spotify = {
 console.log("spotify client id = " + spotify.clientId);
 
 var userBands = [];
+var userAllBandIds = [];
+var newMessageCount;
+var completedProfile;
+var navPhoto;
 
 auth.onAuthStateChanged(function(firebaseUser){
 	if(firebaseUser){
@@ -118,6 +120,8 @@ var jakesDevLogger = function(req, res, next){
 app.use(jakesDevLogger);
 app.use(function(req, res, next) {
     if(res && auth.currentUser){
+		navPhoto = tinyFace(navPhoto);
+		res.locals.navPhoto = navPhoto;
 		res.locals.userEmail = auth.currentUser.email;
 		if(auth.currentUser.displayName){
 			loggedInUserName = auth.currentUser.displayName;
@@ -126,6 +130,11 @@ app.use(function(req, res, next) {
 	} 
     next();
 });
+
+var tinyFace = function(x){
+	var index = x.indexOf("/upload")+7;
+	return x.slice(0,index) + "/w_50,h_50,c_thumb,g_face" + x .slice(index)
+}
 
 //calculates distance "as the crow flies" between two coordinates
 function haversineDistance(coords1, coords2, isMiles) {
@@ -170,8 +179,27 @@ var authOptions = {
 //////////
 //ROUTES//
 //////////
-app.get('/', function(req,res){	
-	res.render('home',{user:user});
+app.get('/', function(req,res){
+	var msgCount;
+	if(completedProfile){
+		MongoClient.connect(URI, function(err,db){
+			if(!err){
+				db.collection('bandyUsers').findOne({"name":loggedInUserName},function(err,doc){
+					msgCount = doc.messages.length;
+					console.log(msgCount);
+					res.render('home',{ //todo switch this render to a dashboard with links to /edit, /messages, /browse, /search
+						user:user,
+						msgCount: msgCount,
+						navPhoto: navPhoto
+					});
+				});
+			}else{
+				console.log(err)
+			};
+		});
+	}else{
+		res.render('home');
+	}
 });
 
 ////DEV TESTING ONLY NFP:
@@ -219,14 +247,7 @@ app.post('/make-fake', function(req,res){
 		bandIds.push(band.spotifyId);
 		allBandIds.push(band.spotifyId);
 	});	
-	//form.uploadDir = __dirname + '/uploads';
     console.log("--FORM--");	
-	/*
-	form.on('fileBegin', function(name, file) {
-		var date = +new Date();
-		file.path = form.uploadDir + "/" + date + "-" + file.name;
-	})
-	*/
 	form.parse(req, function(err, fields, files){
 		if(err) return res.redirect(303, '/');
 		/*		
@@ -364,6 +385,7 @@ console.log(loggedInUserLocation);
 		var imageSrc;
 		var userName = req.params.userName;
 		var otherUserLocation;
+		var otherUserAllBandIds;
 		var distance;
 		var bio;
 		var age;
@@ -379,6 +401,8 @@ console.log(loggedInUserLocation);
 						age = doc.age;
 						gender = doc.gender;
 						bands = doc.bands;
+						otherUserAllBandIds = doc.allBandIds;
+						jaccard.index(userAllBandIds, otherUserAllBandIds, console.log);
 						otherUserLocation = doc.loc.coordinates;
 						distance = haversineDistance(loggedInUserLocation, otherUserLocation, true);
 						//TODO. user distance in view is DEV only. they dont need to see exact distance from each other.
@@ -442,7 +466,8 @@ app.get('/browse', function(req, res){
 				{_id:0,name:1}).toArray(function(err, docs){
 					if(!err){
 						docs.forEach(function(doc){
-							if(doc.name !== loggedInUserName) matches.push(doc.name);
+							if(doc.name != loggedInUserName) matches.push(doc.name);
+							console.log(doc.name + "  " + loggedInUserName);
 						});
 						console.log("matches.length = " + matches.length);
 						if(matches.length > 0){
@@ -476,7 +501,6 @@ app.get('/next-profile', function(req,res){
 	}
 });
 
-
 app.post('/user-locale', function(req,res){
 	loggedInUserLocation[0] = +req.body.longitude;
 	loggedInUserLocation[1] = +req.body.latitude;
@@ -489,12 +513,14 @@ app.post('/user-locale', function(req,res){
 					db.collection('bandyUsers').updateOne({"userEmail":auth.currentUser.email},				
 					{$set:{
 						"loc" : {type: "Point", coordinates: loggedInUserLocation}
-					}});					
+					}});
+					res.send("locale updated");
 				}catch(e){
 					console.log(e)
 				};
 			}else{
 				console.log(err);
+				res.send("error updating locale");
 			}
 		});		
 	}
@@ -517,7 +543,7 @@ app.post('/add-bands', function(req, res){
 	console.log(bands);
 	var bandIds = [];
 	var relBandIds = [];
-	var allBandIds = [];
+	var userAllBandIds = [];
 	var processedBands = 0;
 
 	bands.forEach(function(band){getRelated(band)});
@@ -623,7 +649,8 @@ app.post('/complete-profile', function(req,res){
 						"photo" : imgUrl,
 						"bio" : bio,
 						"age" : age,
-						"gender" : gender
+						"gender" : gender,
+						"completedProfile": true
 					}}, function(err, result){
 						if(err) console.log(err);
 						console.log(result);
@@ -643,12 +670,10 @@ app.post('/complete-profile', function(req,res){
 });
 
 app.get('/messages', function(req, res){
-	//var messages = [];
 	var messages;
 	MongoClient.connect(URI, function(err, db){
 		if(!err){
 			db.collection('bandyUsers').findOne({name: loggedInUserName}, {messages:1}, function(err, doc){
-				//if(doc.messages) doc.messages.forEach(function(message){messages.push(message)});
 				messages = doc.messages;
 				res.render('messages', {messages:messages});
 			});
@@ -670,6 +695,7 @@ app.post('/send-message', function(req, res){
 				{"name": reciever}, 
 				{$addToSet: 
 					{ "messages": {
+						"tinyFace": navPhoto,
 						"date": date, 
 						"sender": loggedInUserName, 
 						"message": message, 
@@ -677,13 +703,14 @@ app.post('/send-message', function(req, res){
 					}}
 				}
 			);
+			res.send("success");
 		}else{
 			console.log(err);
 		}
 	});
 });
 
-//Authentication. TODO: optimize sign up and login flow, add Google and FB login as first options.
+//Authentication. TODO: optimize sign up and login flow, add FB login.
 
 app.post('/google-sign-in', function(req, res){
 	//console.log("top of google sign in route");
@@ -738,14 +765,21 @@ app.post('/login', function(req, res) {
 				db.collection('bandyUsers').findOne({"userEmail" : auth.currentUser.email}, function(err,doc){
 					if(!err){
 						doc.bandIds.forEach(function(id){userBands.push(id)});
-						//doc.relatedBands.forEach(function(band){userBands.push(band)});
+						doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});
+						if(doc.completedProfile){
+							console.log("This user has completed their profile.");
+							completedProfile = true;
+						}
+						if(doc.photo){
+							navPhoto = doc.photo;
+						}
 						loggedInUserLocation[0] = doc.loc.coordinates[0];
 						loggedInUserLocation[1] = doc.loc.coordinates[1];
 						console.log("added user\'s last location");
 					}else{
 						console.log(err)
 					};
-					res.redirect('/edit'); //browse
+					res.redirect('/');
 				});
 			}else{
 				console.log(err)
@@ -767,6 +801,13 @@ app.post('/sign-up', function(req, res) {
 		res.redirect('/add-bands');
 	}).catch(errorMsg);
     
+});
+
+app.get('/logout', function(req, res) {
+	console.log("logging user out...");
+	auth.signOut().then(function(){
+		res.redirect('/');
+	});
 });
 
 app.post('/logout', function(req, res) {

@@ -13,22 +13,29 @@
 	crossorigin="anonymous">
 	</script>
 	
-	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-	
-		
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">	
 </head>
 <body>
 <div class="tempNav">
 <!--a href="/">Home</a-->
 {{#if loggedInUserName}}
-<a href="/profile/{{loggedInUserName}}">Profile</a>
-<a href="/browse">Browse</a>
-<span id="userLoggedIn">
-Logged in as {{loggedInUserName}}
-<form action='/logout' method='POST'><button class="logout">Log out</button></form>
-</span>
-{{else}}
-<p>You are not logged in.</p>
+
+<div id="loggedInNavBar">
+	<a id="brand" href="/" class="nav-link">Home</a>	
+	<a href="/profile/{{loggedInUserName}}">Profile</a>
+	<a href="/browse">Browse</a>	
+	<span  id="loggedInUserInfo" class="right">
+		<span>{{loggedInUserName}}</span>	
+		<span id="navBarPhoto">
+			<img id="navPhotoImg" src="{{navPhoto}}">
+		</span>
+	</span>
+</div>
+<div class="nav-dropdown right">
+	<a href="/logout">Log Out</a>
+	<a href="/user-map">User Map</a>
+	<a href="/list-profiles">All Profiles</a>
+</div>
 {{/if}}
 
 </div>
@@ -38,6 +45,67 @@ Logged in as {{loggedInUserName}}
 </body>
 
 <style>
+
+body{
+	color: white;
+	background: linear-gradient(-45deg, purple, purple, indigo);
+}
+
+#loggedInUserInfo{
+	padding-right: 10px;
+	padding-top: 2px;
+}
+
+.nav-dropdown{
+	display:none;
+	height: 200px;
+	width: 150px;
+	background-color: purple;
+}
+
+.nav-dropdown a{
+	display:block;
+	padding-left: 10px;
+	padding-top: 10px;
+	z-index: 999;
+}
+
+.nav-link{
+	height: 60px;
+	line-height: 55px;
+	white-space: nowrap;
+	padding-left: 10px;
+}
+
+.right {
+    position: absolute;
+    right: 0px;
+}
+
+#loggedInNavBar{
+	height:60px;
+	/*background: black; /*linear-gradient(-45deg, purple, purple, indigo);*/
+	border-bottom: 1px solid white;
+	color: white;
+	font-family: helvetica;
+	font-size: 20px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 999;
+	width: 100%;
+}
+
+#container{
+	margin-top: 60px;
+}
+
+#navPhotoImg{
+	height:50px;
+	border-radius:40px;
+	border: 1px solid indigo;
+}
+
 #userLoggedIn form{
 	background-color: blue;
 	display: inline;
@@ -47,10 +115,15 @@ Logged in as {{loggedInUserName}}
 	margin:30px;
 }
 
-
 </style>
 {{#if loggedInUserName}}
 <script>
+	var loggedInUserInfo = $("#loggedInUserInfo");
+
+	loggedInUserInfo.click('click', function(){
+		$(".nav-dropdown").slideToggle();
+	});
+
 	$(document).ready(function(){
 		console.log("document loaded and jQuery is working");
 		function getLocation() {
@@ -66,9 +139,9 @@ Logged in as {{loggedInUserName}}
 				url: "/user-locale",
 				data: position.coords,
 				success: function(){console.log("posted location to server...")}
-			});//.done(function(){
-				//console.log("posted location to server...");
-			//});
+			}).done(function(response){
+				console.log(response);
+			});
 			//console.log("updating position: " + position.coords.latitude + ", " + position.coords.longitude);
 		}
 		function showError(error) {

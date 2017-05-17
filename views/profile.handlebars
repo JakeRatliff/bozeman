@@ -31,6 +31,7 @@
 		<input id="messageText" type=text>
 	</div>
 	<button id="sendMessage" class="btn btn-large">Send Message</button>
+	<div id="messageSent" class="alert alert-success">Message Sent!</div>
 	<button id="nextProfile" class="btn btn-large">Next Profile</button>
 	<button id="cancelMessage" class="btn btn-large">Cancel Message</button>
 	
@@ -39,7 +40,8 @@
 
 <style>
 
-#cancelMessage{
+#cancelMessage,
+#messageSent{
 	display: none;
 }
 #messageBox{
@@ -58,6 +60,7 @@ var messageBox = $("#messageBox");
 var cancelMessage = $("#cancelMessage");
 var nextProfile = $("#nextProfile");
 var sendMessage = $("#sendMessage");
+var messageSent = $("#messageSent");
 
 nextProfile.one('click', function(){
 	$.ajax({
@@ -89,6 +92,9 @@ sendMessage.on('click', function(){
 			}
 		}).done(function(response){
 			console.log(response);
+			messageBox.fadeOut();
+			sendMessage.hide();
+			messageSent.show();
 		});
 		cancelMessage.hide();
 		nextProfile.show();

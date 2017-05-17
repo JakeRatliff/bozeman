@@ -1,34 +1,72 @@
 <script src="https://apis.google.com/js/platform.js" async defer></script>
 <meta name="google-signin-client_id" content="10158595553-vgls2otg0imrq6fstohrees9vbdat547.apps.googleusercontent.com">
 
+<!--TODO: make Google and FB login first options-->
+
 {{# if user}}
-<p>Welcome, {{user.displayName}}</p>
-<div id="exit">
-	<form action="logout" method="POST">
-		<button class="logout btn btn-large">Log out</button>
-	</form>
+<div class="container-fluid">
+<div id="dashboard">
+	<div class="row row-dashboard">
+		<div class="col-md-2"></div>
+		<div class="col-md-2 text-center">
+			<span id="shiftMessagesRight">
+				<span id="messages" class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+				<span class="badge badge-notify" style="font-size:1.5em;">{{msgCount}}</span>
+			</span>
+			<div>Messages</div>
+		</div>
+		<div class="col-md-2 text-center">
+			<span id="search" class="glyphicon glyphicon-search" aria-hidden="true"></span>
+			<div>Search</div>
+		</div>
+		<div class="col-md-2 text-center">
+			<span id="edit" class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+			<div>Edit Profile</div>
+		</div>
+		<div class="col-md-2 text-center">
+			<span id="browseButton" class="glyphicon glyphicon-globe" aria-hidden="true"></span>
+			<div>Browse</div>
+		</div>
+		<div class="col-md-2"></div>
+	</div>
+	<!--div class="row row-dashboard">
+		<div class="col-md-3"></div>
+		<div class="col-md-3 text-center">
+			<span id="search" style="font-size:9em; color:purple" class="glyphicon glyphicon-search" aria-hidden="true"></span>
+		</div>
+		<div class="col-md-3 text-center">
+			<span id="edit" style="font-size:9em; color:purple" class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+		</div>
+		<div class="col-md-3"></div>
+	</div-->
 </div>
-<br>
-<button id="messages" class="btn btn-large">Check Messages</button>
+	<!--button id="userMap" class="btn btn-large">User Map</button>
+	<button id="userList" class="btn btn-large">User List</button-->
 
+</div>
 {{else}}
+<div class="container">
+	<h1>ipsle</h1>
+	<p>Here there needs to be: background image of cuties, semi faded monochrome, value proposition.</p>
+	<p>And high-viz federated login option first, then "or login with with email and password"</p>
 
-<div class="g-signin2" data-onsuccess="onSignIn"></div>
+	<div class="g-signin2" data-onsuccess="onSignIn" data-width="175" data-height="35" data-longtitle="true"></div>
 
-<div id="entry">
-<h3>Log in</h3>
-<form action='/login' method='POST'>
-<label>Email: </label><input type="text" id="email" name="email">
-<label>Pass: </label><input type="text" id="pass" name="pass">
-<button type="submit" class="login">Log in</button>
-</form>
+	<div id="entry">
+	<h3>Log in</h3>
+	<form action='/login' method='POST'>
+	<label>Email: </label><input type="text" id="email" name="email">
+	<label>Pass: </label><input type="text" id="pass" name="pass">
+	<button type="submit" class="login">Log in</button>
+	</form>
 
-<h3>New here? Sign up!</h3>
-<form action='sign-up' method='POST'>
-<label>Email: </label><input type="text" id="email" name="email">
-<label>Pass: </label><input type="text" id="pass" name="pass">
-<button type="submit" class="signup">Sign up</button>
-</form>
+	<h3>New here? Sign up!</h3>
+	<form action='sign-up' method='POST'>
+	<label>Email: </label><input type="text" id="email" name="email">
+	<label>Pass: </label><input type="text" id="pass" name="pass">
+	<button type="submit" class="signup">Sign up</button>
+	</form>
+	</div>
 </div>
 <br>
 {{/if}}
@@ -50,11 +88,65 @@ function onSignIn(googleUser) {
 	})
 };
 </script-->
+<style>
+#shiftMessagesRight{
+	padding-left:30px;
+}
 
+.row-dashboard{
+	margin-top:120px;
+}
+.glyphicon{
+	font-size:5em;
+	color:white
+}
+.badge-notify{
+   background:orange;
+   position:relative;
+   top: -55px;
+   left: -22px;
+}
+
+.col-md-2{
+	color: white;
+}
+
+
+</style>
 
 <script>
+var screenHeight = screen.height;
+console.log(screenHeight);
+var docHeight = $(document).height();
+console.log(docHeight);
+$(document).ready(function(){
+	$("body").height(docHeight - 60);
+});
+
+
 var messages = $("#messages");
+var userMap = $("#userMap");
+var userList = $("#userList");
+var browse = $("#browseButton");
+var search = $("#search");
+var edit = $("#edit");
+
 messages.on('click', function(){
 	window.location.href = '/messages';
+});
+userMap.on('click', function(){
+	window.location.href = '/user-map';
+});
+userList.on('click', function(){
+	window.location.href = '/list-profiles';
+});
+browse.on('click', function(){
+	window.location.href = '/browse';
+});
+search.on('click', function(){
+	alert("Coming Soon!");
+});
+edit.on('click', function(){
+	window.location.href = '/edit';
 });
 </script>

@@ -1,18 +1,35 @@
+<div class="container">
 <h3>Messages</h3>
 {{#if messages}}
+<table class="table">
+	<tbody>
 {{#each messages}}
-<div class="messageInfo">
-	<li>{{this.sender}}</li>
-	<li>{{this.date}}</li>
-	<li>{{this.message}}</li>
-</div>
+
+		<tr>
+			<td class="senderIcon">
+				<img src="{{this.tinyFace}}">
+			</td>
+			<td>
+				<li><strong>{{this.sender}}</strong></li>
+				<li>{{this.date}}</li>
+				<li>{{this.message}}</li>
+			</td>
+		</tr>
+
 {{/each}}
+	</tbody>
+</table>
 {{else}}
 <p>You have no recent messages.</p>
 {{/if}}
-
+</div>
 <style>
-.messageInfo{
-	border: 1px solid grey;
+.senderIcon{
+	width: 60px;
+}
+
+li{
+	list-style: none;
+	font-size: 12px;
 }
 </style>
