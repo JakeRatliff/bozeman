@@ -1,29 +1,22 @@
     <div class="container">
-      <div id="login">
-        <h3>Add Your Top Artists from Spotify</h3>
-        <button id="login-button" class="btn btn-primary">Get Artists from Spotify</button>
-      </div>
-	  
-	<!-- REMOVING THIS FOR NOW IOT SIMPLIFY. TODO: ADD IT BACK LATER.
-	  <h3>Add Artists</h3>
-	  <div id="bandEntry"><input id="bandInput" type="text"><button id="addBand">Add</button></div> -->
-	<div id="bands">		
-	</div>
-	
-      <div id="loggedin">
-		<p>Added your top artists from Spotify.</p>
-        <!--div id="user-profile">
-        </div>
-        <div id="oauth">
-        </div-->
-      </div>
-	  <div id="continue">
-		<button id="continueButton" class="btn large" style="display:none">Continue to Profile</button>
-	  </div>
+		<div id="login">
+			<h3>Add Your Top Artists from Spotify</h3>
+			<button id="login-button" class="btn btn-primary">Get Artists from Spotify</button>
+		</div>
+		<div id="continue">
+			<h3>Added your top artists from Spotify.</h3>
+			<button id="continueButton" class="btn large">Continue to Profile</button>
+		</div>
+		<!-- REMOVING THIS FOR NOW IOT SIMPLIFY. TODO: ADD IT BACK LATER.
+		  <h3>Add Artists</h3>
+		  <div id="bandEntry"><input id="bandInput" type="text"><button id="addBand">Add</button></div> -->
+		<div id="bands">		
+		</div>
+
     </div>
 
     <script>
-      (function() {	  
+	(function() {	  
 
 		function findImage(x){
 			for(i=0;i<x.length;i++){
@@ -68,15 +61,12 @@
         function generateRandomString(length) {
           var text = '';
           var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
           for (var i = 0; i < length; i++) {
             text += possible.charAt(Math.floor(Math.random() * possible.length));
           }
           return text;
         };
-
         var params = getHashParams();
-
         var access_token = params.access_token,
             state = params.state,
             storedState = localStorage.getItem(stateKey);
@@ -94,48 +84,40 @@
                 success: function(response) {
 					response.items.forEach(function(i){
 						var imgIndex = findImage(i.images);
-						$('#bands').append("<span class='image'><img class='bandImg' src="+i.images[imgIndex].url+"><div class='name'>"+i.name+"</div></span>");
-						//was appending: <button class='btn addedBand'>"+i.name+
-						//"<span class='glyphicon glyphicon-remove'></span></button>
+						$('#bands').append(
+						"<span class='image'>"+
+							"<img class='bandImg' src="+i.images[imgIndex].url+">"+
+							"<div class='name'>"+i.name+"</div>"+
+						"</span>"
+						).hide().slideDown('slow');
 						savedBands.push({"name" : i.name, "spotifyId": i.id, "artistImage": i.images[imgIndex].url});
-					});
-					
+						$('#continue').show();
+					});					
 					$('#login').hide();
-					$('#loggedin').show();
-					$('#continueButton').show();
                 }
             });
-          } else {
-              $('#login').show();
-              $('#loggedin').hide();
+          }else{
+            $('#login').show();
+            $('#loggedin').hide();
           }
 
-          document.getElementById('login-button').addEventListener('click', function() {
-		  
+        document.getElementById('login-button').addEventListener('click', function() {		  
 			localStorage.setItem("savedBands", JSON.stringify(savedBands));
-
-			
-
             var client_id = 'bc80436ad194471c8a791c060649ecf9'; // Your client id
             var redirect_uri = 'http://localhost:3005/add-bands'; // Your redirect uri
-
             var state = generateRandomString(16);
-
             localStorage.setItem(stateKey, state);
             var scope = 'user-top-read';
-
             var url = 'https://accounts.spotify.com/authorize';
             url += '?response_type=token';
             url += '&client_id=' + encodeURIComponent(client_id);
             url += '&scope=' + encodeURIComponent(scope);
             url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
-            url += '&state=' + encodeURIComponent(state);
-			
-			continueButton();
+            url += '&state=' + encodeURIComponent(state);			
             window.location = url;
           }, false);
         }
-		
+		/*
 		$("#addBand").on('click',function(){
 			var band = $("#bandInput").val();
 			if(band.length > 0){
@@ -154,7 +136,6 @@
 		})
 		
 	  	function continueButton(){
-			var button = $("#continueButton");
 			if(savedBands.length > 0 || $("#bands").length > 0){
 				console.log("there is at least a band.");
 				button.show();
@@ -163,6 +144,8 @@
 				button.hide();
 			}
 		}
+		*/
+
 
 		function nextStep(){
 			localStorage.setItem("savedBands", JSON.stringify(savedBands));
@@ -180,13 +163,18 @@
 		
 		$("#continueButton").one('click', nextStep);
 		
-      })();
+    })();
 
-	  
     </script>
 	<style>
+		#bands{
+			text-align: center;
+		}
 		#continue{
 			margin-top: 20px;
+			margin-bottom: 20px;
+			display:inline;
+			display: none;
 		}
 		.glyphicon-remove{
 			margin-left: 15px;
@@ -206,12 +194,39 @@
 			float: left;		
 		}
 		.name{
-			color: white;
-			background-color: black;
+			display: none;
+			color: black;
 		    left: 0;
 			position:absolute;
-			bottom: 30px;
+			bottom: 80px;
 			width: 100%;
+			font-weight: bold;
+			pointer-events:none;
+		}
+		.fade{
+			opacity: .2;
+		}
+		#continue h3{
+			display:inline;
 		}
 
+
 	</style>
+	<script>
+		$(document).on("mouseenter", "img.bandImg", function(){
+			$(this).addClass("fade").siblings().show();
+		});
+		$(document).on("mouseleave", "img.bandImg", function(){
+			$(this).removeClass("fade").siblings().hide();
+		});
+	</script>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

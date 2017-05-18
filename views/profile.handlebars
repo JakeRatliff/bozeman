@@ -12,28 +12,34 @@
 	{{#if distance}}
 	<p id="distance"><strong>Distance:</strong> {{distance}} miles</p>
 	{{/if}}
+	<p>You and {{userName}} have {{musicMatch}} taste in music.</p>
 	<p><strong>Bio:</strong> {{bio}}</p>
-	<div id="bands">
+
+	{{#if age}}<p><strong>Age:</strong> {{age}}</p>{{/if}}
+	{{#if gender}}<p><strong>Gender:</strong> {{gender}}</p>{{/if}} <!-- TODO: CONSIDER MAKING THIS GENDERLESS -->
+	<button class="btn btn-large btn-info"id="seeBands">See Bands</button>
+	<button style="display:none" class="btn btn-large btn-info"id="hideBands">Hide Bands</button>
+	<div id="bands" style="display:none">
 		<p><strong>Bands:</strong></p>
 			<ul>
 				{{#each bands}}
-					<li>
-						{{this.name}}
 						<!--img class="artistImage" src="{{this.artistImage}}"></img-->
-					</li>
+						<span class='image'>
+							<img class='bandImg' src="{{this.artistImage}}">
+							<div class='name'>{{this.name}}</div>
+						</span>
 				{{/each}}
 			</ul>
 	</div>
-	{{#if age}}<p><strong>Age:</strong> {{age}}</p>{{/if}}
-	{{#if gender}}<p><strong>Gender:</strong> {{gender}}</p>{{/if}} <!-- TODO: CONSIDER MAKING THIS GENDERLESS -->
-	<button  style="display:none" class="btn btn-large btn-info"id="seeBands">See Favorite Bands</button>
 	<div id="messageBox">
 		<input id="messageText" type=text>
 	</div>
-	<button id="sendMessage" class="btn btn-large">Send Message</button>
-	<div id="messageSent" class="alert alert-success">Message Sent!</div>
-	<button id="nextProfile" class="btn btn-large">Next Profile</button>
-	<button id="cancelMessage" class="btn btn-large">Cancel Message</button>
+	<div id="profileBrowser">
+		<button id="sendMessage" class="btn btn-large">Send Message</button>
+		<div id="messageSent" class="alert alert-success">Message Sent!</div>
+		<button id="nextProfile" class="btn btn-large">Next Profile</button>
+		<button id="cancelMessage" class="btn btn-large">Cancel Message</button>
+	</div>
 	
 
 </div>
@@ -52,6 +58,51 @@
 	height: 135px;
 	width: 90%;
 }
+#profileBrowser{
+	height:60px;
+	background: linear-gradient(-45deg, purple, purple, indigo);
+	border-bottom: 1px solid white;
+	color: white;
+	font-family: helvetica;
+	font-size: 20px;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	z-index: 999;
+	width: 100%;
+}
+
+
+.bandImg{
+	height: 175px;
+}
+.image{
+	position:relative;
+	text-align:center;
+	float: left;		
+}
+.name{
+	display: none;
+	color: black;
+    left: 0;
+	position:absolute;
+	bottom: 80px;
+	width: 100%;
+	font-weight: bold;
+	pointer-events:none;
+}
+.fade{
+	opacity: .2;
+}
+
+@media (max-width: 600px) {
+  .bandImg {
+    height: 80px;
+  }
+  .name{
+	bottom: 30px;
+  }
+}
 </style>
 
 <script>
@@ -61,6 +112,8 @@ var cancelMessage = $("#cancelMessage");
 var nextProfile = $("#nextProfile");
 var sendMessage = $("#sendMessage");
 var messageSent = $("#messageSent");
+var seeBands = $("#seeBands");
+var hideBands = $("#hideBands");
 
 nextProfile.one('click', function(){
 	$.ajax({
@@ -104,16 +157,31 @@ sendMessage.on('click', function(){
 		messageBox.show();
 	}
 	
-cancelMessage.on('click', function(){
-	messageBox.hide();
+	cancelMessage.on('click', function(){
+		messageBox.hide();
+		$(this).hide();
+		nextProfile.show();
+	});
+});
+
+seeBands.click(function(){
+	$("#bands").show();
 	$(this).hide();
-	nextProfile.show();
+	hideBands.show();
 });
 
-	
-
+hideBands.click(function(){
+	$("#bands").hide();
+	$(this).hide();
+	seeBands.show();	
 });
 
+$(document).on("mouseenter", "img.bandImg", function(){
+	$(this).addClass("fade").siblings().show();
+});
+$(document).on("mouseleave", "img.bandImg", function(){
+	$(this).removeClass("fade").siblings().hide();
+});
 
 
 </script>

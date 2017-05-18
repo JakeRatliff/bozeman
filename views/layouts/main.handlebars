@@ -24,7 +24,7 @@
 	<a id="brand" href="/" class="nav-link">Home</a>	
 	<a href="/profile/{{loggedInUserName}}">Profile</a>
 	<a href="/browse">Browse</a>	
-	<span  id="loggedInUserInfo" class="right">
+	<span  id="loggedInUserInfo" style="position:absolute;right: 0px;">
 		<span>{{loggedInUserName}}</span>	
 		<span id="navBarPhoto">
 			<img id="navPhotoImg" src="{{navPhoto}}">
@@ -46,10 +46,6 @@
 
 <style>
 
-body{
-	color: white;
-	background: linear-gradient(-45deg, purple, purple, indigo);
-}
 
 #loggedInUserInfo{
 	padding-right: 10px;
@@ -76,7 +72,6 @@ body{
 	white-space: nowrap;
 	padding-left: 10px;
 }
-
 .right {
     position: absolute;
     right: 0px;
@@ -84,7 +79,7 @@ body{
 
 #loggedInNavBar{
 	height:60px;
-	/*background: black; /*linear-gradient(-45deg, purple, purple, indigo);*/
+	background: linear-gradient(-45deg, purple, purple, indigo);
 	border-bottom: 1px solid white;
 	color: white;
 	font-family: helvetica;

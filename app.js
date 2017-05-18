@@ -120,14 +120,16 @@ var jakesDevLogger = function(req, res, next){
 app.use(jakesDevLogger);
 app.use(function(req, res, next) {
     if(res && auth.currentUser){
-		navPhoto = tinyFace(navPhoto);
-		res.locals.navPhoto = navPhoto;
 		res.locals.userEmail = auth.currentUser.email;
-		if(completedProfile && auth.currentUser.displayName){
+		if(auth.currentUser.displayName){
 			loggedInUserName = auth.currentUser.displayName;
 			res.locals.loggedInUserName = loggedInUserName;
 		} 		
-	} 
+	}
+	if(completedProfile){
+		navPhoto = tinyFace(navPhoto);
+		res.locals.navPhoto = navPhoto;		
+	}
     next();
 });
 
@@ -185,7 +187,7 @@ app.get('/', function(req,res){
 		MongoClient.connect(URI, function(err,db){
 			if(!err){
 				db.collection('bandyUsers').findOne({"name":loggedInUserName},function(err,doc){
-					msgCount = doc.messages.length;
+					if(doc.messages) msgCount = doc.messages.length;
 					console.log(msgCount);
 					res.render('home',{ //todo switch this render to a dashboard with links to /edit, /messages, /browse, /search
 						user:user,
@@ -391,6 +393,7 @@ console.log(loggedInUserLocation);
 		var age;
 		var gender;
 		var bands;
+		var musicMatch;
 		MongoClient.connect(URI, function(err, db){
 			if(!err){			
 				db.collection('bandyUsers').findOne({"name" : userName}, function(err,doc){
@@ -402,7 +405,17 @@ console.log(loggedInUserLocation);
 						gender = doc.gender;
 						bands = doc.bands;
 						otherUserAllBandIds = doc.allBandIds;
-						jaccard.index(userAllBandIds, otherUserAllBandIds, console.log);
+						musicMatch = Math.floor(jaccard.index(userAllBandIds, otherUserAllBandIds)*100)/100;
+						console.log("musicMatch = " + musicMatch);
+						if(musicMatch < .06){
+							musicMatch = "different";
+						}else if(.06 < musicMatch < .10){
+							musicMatch = "somewhat similar";
+						}else if(.10 < musicMatch < 1){
+							musicMatch = "similar";
+						}else{
+							musicMatch = "quite similar";
+						}
 						otherUserLocation = doc.loc.coordinates;
 						distance = haversineDistance(loggedInUserLocation, otherUserLocation, true);
 						//TODO. user distance in view is DEV only. they dont need to see exact distance from each other.
@@ -424,7 +437,8 @@ console.log(loggedInUserLocation);
 								age: age,
 								gender: gender,
 								bands: bands,
-								distance: distance
+								distance: distance,
+								musicMatch: musicMatch
 							});											
 						}
 					}else{
@@ -460,7 +474,7 @@ app.get('/browse', function(req, res){
 			if(!err){
 				db.collection('bandyUsers').find(
 				{
-					loc: {$geoWithin:{$centerSphere:[loggedInUserLocation,10/3963.2]}}, ///10 mile radius
+					loc: {$geoWithin:{$centerSphere:[loggedInUserLocation,20/3963.2]}}, ///20 mile radius
 					allBandIds: {$in: userBands}
 				}, 
 				{_id:0,name:1}).toArray(function(err, docs){
@@ -543,7 +557,7 @@ app.post('/add-bands', function(req, res){
 	console.log(bands);
 	var bandIds = [];
 	var relBandIds = [];
-	var userAllBandIds = [];
+	var allBandIds = [];
 	var processedBands = 0;
 
 	bands.forEach(function(band){getRelated(band)});
@@ -653,9 +667,8 @@ app.post('/complete-profile', function(req,res){
 						"completedProfile": true
 					}}, function(err, result){
 						if(err) console.log(err);
-						console.log(result);
+						completedProfile = true;
 					});
-					console.log("bottom of the $set");
 					user.updateProfile({
 						displayName: name
 					}).then(res.redirect(303,'/edit'));
