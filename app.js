@@ -41,12 +41,7 @@ var firebaseConfig = {
 console.log(credentials.firebaseApiKey);
 
 firebase.initializeApp(firebaseConfig);
-var auth = firebase.auth();
-var user;
-var loggedInUserLocation= [];
-var loggedInUserName;
-var matches = [];
-var matchIndex = 0;
+
 
 var spotify = {
 	clientId: credentials.spotifyClientId,
@@ -55,11 +50,19 @@ var spotify = {
 
 console.log("spotify client id = " + spotify.clientId);
 
+///user globals
 var userBands = [];
 var userAllBandIds = [];
 var newMessageCount;
 var completedProfile;
 var navPhoto;
+var auth = firebase.auth();
+var user;
+var loggedInUserLocation = [];
+var loggedInUserName;
+var matches = [];
+var matchIndex = 0;
+var signUpFlow;
 
 auth.onAuthStateChanged(function(firebaseUser){
 	if(firebaseUser){
@@ -120,15 +123,17 @@ var jakesDevLogger = function(req, res, next){
 app.use(jakesDevLogger);
 app.use(function(req, res, next) {
     if(res && auth.currentUser){
-		res.locals.userEmail = auth.currentUser.email;
-		if(auth.currentUser.displayName){
-			loggedInUserName = auth.currentUser.displayName;
-			res.locals.loggedInUserName = loggedInUserName;
-		} 		
+		res.locals.userEmail = auth.currentUser.email;	
 	}
-	if(completedProfile){
-		navPhoto = tinyFace(navPhoto);
-		res.locals.navPhoto = navPhoto;		
+	if(signUpFlow && completedProfile){
+		console.log("loggedInUserName = " + loggedInUserName);
+		res.locals.loggedInUserName = loggedInUserName;
+		res.locals.navPhoto = navPhoto;
+	}
+	if(!signUpFlow && completedProfile && user){
+		loggedInUserName = auth.currentUser.displayName;
+		res.locals.loggedInUserName = loggedInUserName;
+		res.locals.navPhoto = navPhoto;
 	}
     next();
 });
@@ -184,12 +189,16 @@ var authOptions = {
 app.get('/', function(req,res){
 	var msgCount;
 	if(completedProfile){
+		//loggedInUserName = auth.currentUser.displayName;
+		console.log("loggedInUserName = " + loggedInUserName);
 		MongoClient.connect(URI, function(err,db){
 			if(!err){
 				db.collection('bandyUsers').findOne({"name":loggedInUserName},function(err,doc){
-					if(doc.messages) msgCount = doc.messages.length;
-					console.log(msgCount);
-					res.render('home',{ //todo switch this render to a dashboard with links to /edit, /messages, /browse, /search
+					if(doc.messages){
+						msgCount = doc.messages.length;
+						console.log(msgCount);
+					}
+					res.render('home',{
 						user:user,
 						msgCount: msgCount,
 						navPhoto: navPhoto
@@ -202,6 +211,10 @@ app.get('/', function(req,res){
 	}else{
 		res.render('home');
 	}
+});
+
+app.get('/redirector', function(req, res){
+	res.redirect(303, '/');
 });
 
 ////DEV TESTING ONLY NFP:
@@ -561,10 +574,17 @@ app.post('/add-bands', function(req, res){
 	var processedBands = 0;
 
 	bands.forEach(function(band){getRelated(band)});
+	
 
+	///	doc.bandIds.forEach(function(id){userBands.push(id)});
+	///	doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});
+	
+	
 	function getRelated(band){
 		bandIds.push(band.spotifyId);
+		userBands.push(band.spotifyId); ///for browsing after sign up
 		allBandIds.push(band.spotifyId);
+		userAllBandIds.push(band.spotifyId); ///for browsing after sign up
 		request.post(authOptions, function(error, response, body) {
 			if (!error && response.statusCode === 200) {
 				var token = body.access_token;
@@ -581,6 +601,7 @@ app.post('/add-bands', function(req, res){
 						artists.forEach(function(artist){
 							relBandIds.push(artist.id);
 							allBandIds.push(artist.id);
+							userAllBandIds.push(artist.id);
 						})
 						processedBands++;
 						if(processedBands === bands.length){
@@ -644,23 +665,26 @@ app.post('/complete-profile', function(req,res){
 		return new Promise(function(resolve, reject){
 			cloudinary.uploader.upload(file, function(result){
 				console.log(result);
+				if(result.error){
+					res.send("There was an error uploading your image.");
+				}
 				imgUrl = result.secure_url;
 				resolve();
 			});
 		});
 	};	
 	function sendData(){
-		console.log("user display name updated in Firebase, now adding to MongoDB and redirecting...");
 		MongoClient.connect(URI, function(err, db){
 			if(!err){
-				console.log('connected to db, updating this users profile...');
-				console.log('imgUrl inside sendData = ' + imgUrl);
-				console.log('current user email = ' + auth.currentUser.email);
+				loggedInUserName = name;
+				var iconPhoto = tinyFace(imgUrl);
+				navPhoto = iconPhoto;
 				try{
 					db.collection('bandyUsers').updateOne({"userEmail":auth.currentUser.email},				
 					{$set:{
 						"name" : name,
 						"photo" : imgUrl,
+						"iconPhoto": iconPhoto,
 						"bio" : bio,
 						"age" : age,
 						"gender" : gender,
@@ -668,10 +692,11 @@ app.post('/complete-profile', function(req,res){
 					}}, function(err, result){
 						if(err) console.log(err);
 						completedProfile = true;
+						signUpFlow = true;
 					});
 					user.updateProfile({
 						displayName: name
-					}).then(res.redirect(303,'/edit'));
+					}).then(res.redirect(303,'/redirector'));
 				}catch(e){
 					console.log(e)
 				};
@@ -782,13 +807,14 @@ app.post('/login', function(req, res) {
 						if(doc.completedProfile){
 							console.log("This user has completed their profile.");
 							completedProfile = true;
+							console.log(doc.iconPhoto);
+							navPhoto = doc.iconPhoto;
 						}
-						if(doc.photo){
-							navPhoto = doc.photo;
-						}
-						loggedInUserLocation[0] = doc.loc.coordinates[0];
-						loggedInUserLocation[1] = doc.loc.coordinates[1];
-						console.log("added user\'s last location");
+						if(doc.loc){
+							loggedInUserLocation[0] = doc.loc.coordinates[0];
+							loggedInUserLocation[1] = doc.loc.coordinates[1];
+							console.log("added user\'s last location");							
+						};
 						res.redirect('/');
 					}else{
 						console.log(err)
@@ -813,12 +839,12 @@ app.post('/sign-up', function(req, res) {
 	};
 	signUp.then(function(){
 		res.redirect('/add-bands');
-	}).catch(errorMsg);
-    
+	}).catch(errorMsg);    
 });
 
 app.get('/logout', function(req, res) {
 	console.log("logging user out...");
+	signUpFlow = false;
 	auth.signOut().then(function(){
 		res.redirect('/');
 	});

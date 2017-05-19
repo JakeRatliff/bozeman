@@ -9,11 +9,19 @@
 	<div class="row row-dashboard">
 		<div class="col-md-2"></div>
 		<div class="col-md-2 text-center">
+			{{#if msgCount}}
 			<span id="shiftMessagesRight">
 				<span id="messages" class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
 				<span class="badge badge-notify" style="font-size:1.5em;">{{msgCount}}</span>
 			</span>
 			<div>Messages</div>
+			{{else}}
+			<span>
+				<span id="messages" class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+				<span class="badge badge-notify" style="font-size:1.5em;">{{msgCount}}</span>
+			</span>
+			<div>Messages</div>			
+			{{/if}}
 		</div>
 		<div class="col-md-2 text-center">
 			<span id="search" class="glyphicon glyphicon-search" aria-hidden="true"></span>
@@ -108,10 +116,8 @@ function onSignIn(googleUser) {
 }
 
 .col-md-2{
-	color: white;
+	color: purple;
 }
-
-
 </style>
 
 <script>
