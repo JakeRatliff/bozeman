@@ -120,6 +120,8 @@
 
 	$(document).ready(function(){
 		console.log("document loaded and jQuery is working");
+		///TODO: ensure users location is turned on
+		///TODO: make app not crash if it isn't
 		function getLocation() {
 			if (navigator.geolocation) {
 				navigator.geolocation.watchPosition(showPosition,showError); //for one-time: getCurrentPosition()
