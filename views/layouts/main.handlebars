@@ -143,7 +143,8 @@
 		function showError(error) {
 			switch(error.code) {
 			case error.PERMISSION_DENIED:
-				console.log("User denied the request for Geolocation.")
+				console.log("User denied the request for Geolocation.");
+				alert("This site needs to know your location in order to get matches near you.");
 				break;
 			case error.POSITION_UNAVAILABLE:
 				console.log("Location information is unavailable.")

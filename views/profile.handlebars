@@ -3,9 +3,9 @@
 	<h1 id="userName">{{userName}}</h1>
 	<div>
 		{{#if imgUrl}}
-			<img style="height:150px;border-radius:3px;" src="{{imgUrl}}">
+			<img id="profilePic" style="height:150px;border-radius:3px;" src="{{imgUrl}}">
 		{{else}}
-			<img style="height:150px;border-radius:3px;" src="https://quinary-niume.scdn3.secure.raxcdn.com/pic/profile/default_profile.jpg">
+			<img id="profilePic" style="height:150px;border-radius:3px;" src="https://quinary-niume.scdn3.secure.raxcdn.com/pic/profile/default_profile.jpg">
 		{{/if}}
 	</div>
 	<h3>About {{userName}}</h3>
@@ -17,30 +17,28 @@
 
 	{{#if age}}<p><strong>Age:</strong> {{age}}</p>{{/if}}
 	{{#if gender}}<p><strong>Gender:</strong> {{gender}}</p>{{/if}} <!-- TODO: CONSIDER MAKING THIS GENDERLESS -->
-	<button class="btn btn-large btn-info"id="seeBands">See Bands</button>
-	<button style="display:none" class="btn btn-large btn-info"id="hideBands">Hide Bands</button>
+
 	<div id="bands" style="display:none">
-		<p><strong>Bands:</strong></p>
-			<ul>
-				{{#each bands}}
-						<!--img class="artistImage" src="{{this.artistImage}}"></img-->
-						<span class='image'>
-							<img class='bandImg' src="{{this.artistImage}}">
-							<div class='name'>{{this.name}}</div>
-						</span>
-				{{/each}}
-			</ul>
+		{{#each bands}}
+			<span class='image'>
+				<img class='bandImg' src="{{this.artistImage}}">
+				<div class='name'>{{this.name}}</div>
+			</span>
+		{{/each}}
 	</div>
+
 	<div id="messageBox">
 		<input id="messageText" type=text>
 	</div>
-	<button id="sendMessage" class="btn btn-large">Send Message</button>
-	<div id="messageSent" class="alert alert-success">Message Sent!</div>
-	<button id="nextProfile" class="btn btn-large">Next Profile</button>
-	<button id="cancelMessage" class="btn btn-large">Cancel Message</button>	
-
+	<div id="browsingButtons">
+		<button class="btn btn-large btn-info"id="seeBands">See Bands</button>
+		<button style="display:none" class="btn btn-large btn-info"id="hideBands">Hide Bands</button>
+		<button id="sendMessage" class="btn btn-large">Send Message</button>
+		<div id="messageSent" class="alert alert-success">Message Sent!</div>
+		<button id="nextProfile" class="btn btn-large">Next Profile</button>
+		<button id="cancelMessage" class="btn btn-large">Cancel Message</button>
+	</div>
 </div>
-
 <style>
 
 #cancelMessage,
@@ -55,21 +53,6 @@
 	height: 135px;
 	width: 90%;
 }
-#profileBrowser{
-	height:60px;
-	background: linear-gradient(-45deg, purple, purple, indigo);
-	border-bottom: 1px solid white;
-	color: white;
-	font-family: helvetica;
-	font-size: 20px;
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	z-index: 999;
-	width: 100%;
-}
-
-
 .bandImg{
 	height: 175px;
 }
@@ -91,14 +74,37 @@
 .fade{
 	opacity: .2;
 }
+.blackout{
+	background-color: black;
+	color: black;
+}
 
 @media (max-width: 600px) {
-  .bandImg {
-    height: 80px;
-  }
-  .name{
-	bottom: 30px;
-  }
+	.bandImg {
+		height: 80px;
+	}
+	.name{
+		bottom: 30px;
+	}
+	#browsingButtons{
+		height:60px;
+		background: linear-gradient(-45deg, purple, purple, indigo);
+		border-bottom: 1px solid white;
+		font-family: helvetica;
+		font-size: 20px;
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		z-index: 999;
+		width: 100%;
+	}	
+	#bands{
+		position:absolute;
+		bottom:0;
+		width: 100%;
+		padding-bottom:40px;
+		z-index: 100;
+	}
 }
 </style>
 
@@ -111,6 +117,7 @@ var sendMessage = $("#sendMessage");
 var messageSent = $("#messageSent");
 var seeBands = $("#seeBands");
 var hideBands = $("#hideBands");
+var bands = $("#bands");
 
 nextProfile.one('click', function(){
 	$.ajax({
@@ -126,7 +133,6 @@ nextProfile.one('click', function(){
 });
 
 sendMessage.on('click', function(){
-	console.log("yep, clicked");
 	if(messageBox.is(':visible')){
 		//send the message
 		var message = $("#messageText").val();
@@ -152,8 +158,7 @@ sendMessage.on('click', function(){
 		cancelMessage.show();
 		nextProfile.hide();
 		messageBox.show();
-	}
-	
+	}	
 	cancelMessage.on('click', function(){
 		messageBox.hide();
 		$(this).hide();
@@ -161,16 +166,27 @@ sendMessage.on('click', function(){
 	});
 });
 
-seeBands.click(function(){
-	$("#bands").show();
-	$(this).hide();
+seeBands.click(function () {
+	bands.slideToggle({
+      direction: "up"
+    }, 300);
+    $(this).hide();
 	hideBands.show();
-});
+	$("div").not($(".name")).addClass("blackout");
+	$("#profilePic").hide();
+	$(".name").css("color", "white");
+	
+  }); 
+
 
 hideBands.click(function(){
-	$("#bands").hide();
+	bands.slideToggle({
+      direction: "down"
+    }, 300);
 	$(this).hide();
 	seeBands.show();	
+	$("div").removeClass("blackout");
+	$("#profilePic").show();
 });
 
 $(document).on("mouseenter", "img.bandImg", function(){

@@ -95,13 +95,16 @@ app.set('view engine', 'handlebars');
 var MongoClient = require('mongodb').MongoClient;
 var URI = process.env.mongoURI_band;
 if(environment == 'production') URI = process.env.MONGODB_URI;
+var db;
+var coll;
 
 console.log("database location  = " + URI);
 var ObjectId = require('mongodb').ObjectID;
 
-MongoClient.connect(URI, function(err,db){
+MongoClient.connect(URI, function(err, database){
 	if(!err){
-		console.log("connected to database!");
+		db = database;
+		coll = db.collection('bandyUsers');
 	}else{
 		console.log(err)
 	}
@@ -145,30 +148,26 @@ var tinyFace = function(x){
 
 //calculates distance "as the crow flies" between two coordinates
 function haversineDistance(coords1, coords2, isMiles) {
-  function toRad(x) {
-    return x * Math.PI / 180;
-  }
-  
-  var lon1 = coords1[0];
-  var lat1 = coords1[1];
-
-  var lon2 = coords2[0];
-  var lat2 = coords2[1];
-
-  var R = 6371; // km
-
-  var x1 = lat2 - lat1;
-  var dLat = toRad(x1);
-  var x2 = lon2 - lon1;
-  var dLon = toRad(x2)
-  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  var d = R * c;
-  if(isMiles) d /= 1.60934;
-  d = Math.floor(d*100)/100;
-  return d;
+	function toRad(x) {
+		return x * Math.PI / 180;
+	}
+	var lon1 = coords1[0];
+	var lat1 = coords1[1];
+	var lon2 = coords2[0];
+	var lat2 = coords2[1];
+		var R = 6371; // km
+		var x1 = lat2 - lat1;
+	var dLat = toRad(x1);
+	var x2 = lon2 - lon1;
+	var dLon = toRad(x2)
+	var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+		Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+		Math.sin(dLon / 2) * Math.sin(dLon / 2);
+	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	var d = R * c;
+	if(isMiles) d /= 1.60934;
+	d = Math.floor(d*100)/100;
+	return d;
 }
 
 //for Spotify client credentials auth:
@@ -189,24 +188,17 @@ var authOptions = {
 app.get('/', function(req,res){
 	var msgCount;
 	if(completedProfile){
-		//loggedInUserName = auth.currentUser.displayName;
 		console.log("loggedInUserName = " + loggedInUserName);
-		MongoClient.connect(URI, function(err,db){
-			if(!err){
-				db.collection('bandyUsers').findOne({"name":loggedInUserName},function(err,doc){
-					if(doc.messages){
-						msgCount = doc.messages.length;
-						console.log(msgCount);
-					}
-					res.render('home',{
-						user:user,
-						msgCount: msgCount,
-						navPhoto: navPhoto
-					});
-				});
-			}else{
-				console.log(err)
-			};
+		coll.findOne({"name":loggedInUserName},function(err,doc){
+			if(doc.messages){
+				msgCount = doc.messages.length;
+				console.log(msgCount);
+			}
+			res.render('home',{
+				user:user,
+				msgCount: msgCount,
+				navPhoto: navPhoto
+			});
 		});
 	}else{
 		res.render('home');
@@ -232,21 +224,15 @@ app.get('/user-map',function(req,res){
 
 app.get('/user-locs', function(req, res){
 	var userLocs = [];
-	MongoClient.connect(URI, function(err, db){
+	coll.find({},{_id:0,loc:1,name:1}).toArray(function(err, docs){
 		if(!err){
-			db.collection('bandyUsers').find({},{_id:0,loc:1,name:1}).toArray(function(err, docs){
-				if(!err){
-					docs.forEach(function(doc){
-						userLocs.push([doc.loc, doc.name]);
-					});
-					res.send(userLocs);
-				}else{
-					console.log(err);
-				}
+			docs.forEach(function(doc){
+				userLocs.push([doc.loc, doc.name]);
 			});
+			res.send(userLocs);
 		}else{
 			console.log(err);
-			}
+		}
 	});
 });
 
@@ -344,54 +330,43 @@ app.post('/make-fake', function(req,res){
 		});
 	};
 	function sendData(){
-		MongoClient.connect(URI, function(err, db){
-			if(!err){
-				console.log('connected to db, inserting fake profile...');
-				try{
-					db.collection('bandyUsers').insertOne({
-						"name" : name,
-						"photo" : imgUrl,
-						"bio" : bio,
-						"age" : age,
-						"gender" : gender,
-						"bands": fakeUserBands,
-						"bandIds": bandIds,
-						"relBandIds": relBandIds,
-						"allBandIds": allBandIds,
-						"loc" : userLocation,
-						"fake" : true
-					});					
-				}catch(e){
-					console.log(e)
-				};
-			}else{
-				console.log(err);
-			}
-		})		
+		try{
+			coll.insertOne({
+				"name" : name,
+				"photo" : imgUrl,
+				"bio" : bio,
+				"age" : age,
+				"gender" : gender,
+				"bands": fakeUserBands,
+				"bandIds": bandIds,
+				"relBandIds": relBandIds,
+				"allBandIds": allBandIds,
+				"loc" : userLocation,
+				"fake" : true
+			});					
+		}catch(e){
+			console.log(e)
+		};		
 		res.redirect(303,'/list-profiles');
 	}
 });
 
 //NOT FOR PRODUCTION:
 app.get('/list-profiles', function(req, res){
-	var profiles = [];
-		MongoClient.connect(URI, function(err, db){
-			if(!err){			
-				db.collection('bandyUsers').find({}, {_id:0, name:1}).toArray(function(err,docs){
-					if(!err){
-						docs.forEach(function(doc){
-							profiles.push(doc);
-						});
-						console.log(profiles);
-						res.render('list-profiles',{
-							profiles:profiles
-						});
-					}else{
-						console.log(err);
-					}
-				}); 
-			}
-		});
+	var profiles = [];		
+	coll.find({}, {_id:0, name:1}).toArray(function(err,docs){
+		if(!err){
+			docs.forEach(function(doc){
+				profiles.push(doc);
+			});
+			console.log(profiles);
+			res.render('list-profiles',{
+				profiles:profiles
+			});
+		}else{
+			console.log(err);
+		}
+	}); 
 });
 
 app.get('/profile/:userName', function(req, res){
@@ -406,60 +381,55 @@ console.log(loggedInUserLocation);
 		var age;
 		var gender;
 		var bands;
-		var musicMatch;
-		MongoClient.connect(URI, function(err, db){
-			if(!err){			
-				db.collection('bandyUsers').findOne({"name" : userName}, function(err,doc){
-					if(!err){
-						imageSrc = doc.photo;//photo.path.slice(doc.photo.path.indexOf('uploads'));						
-						userName = doc.name;
-						bio = doc.bio;
-						age = doc.age;
-						gender = doc.gender;
-						bands = doc.bands;
-						otherUserAllBandIds = doc.allBandIds;
-						musicMatch = Math.floor(jaccard.index(userAllBandIds, otherUserAllBandIds)*100)/100;
-						console.log("musicMatch = " + musicMatch);
-						if(musicMatch < .06){
-							musicMatch = "different";
-						}else if(.06 < musicMatch < .10){
-							musicMatch = "somewhat similar";
-						}else if(.10 < musicMatch < 1){
-							musicMatch = "similar";
-						}else{
-							musicMatch = "quite similar";
-						}
-						otherUserLocation = doc.loc.coordinates;
-						distance = haversineDistance(loggedInUserLocation, otherUserLocation, true);
-						//TODO. user distance in view is DEV only. they dont need to see exact distance from each other.
-						
-						if(userName == loggedInUserName){
-							res.render('self',{
-								imgUrl:imageSrc,
-								userName:userName,
-								bio: bio,
-								age: age,
-								gender: gender,
-								bands: bands
-							});
-						}else{
-							res.render('profile',{
-								imgUrl:imageSrc,
-								userName:userName,
-								bio: bio,
-								age: age,
-								gender: gender,
-								bands: bands,
-								distance: distance,
-								musicMatch: musicMatch
-							});											
-						}
-					}else{
-						console.log(err);
-					}
-				}); 
+		var musicMatch;		
+		coll.findOne({"name" : userName}, function(err,doc){
+			if(!err){
+				imageSrc = doc.photo;//photo.path.slice(doc.photo.path.indexOf('uploads'));						
+				userName = doc.name;
+				bio = doc.bio;
+				age = doc.age;
+				gender = doc.gender;
+				bands = doc.bands;
+				otherUserAllBandIds = doc.allBandIds;
+				musicMatch = Math.floor(jaccard.index(userAllBandIds, otherUserAllBandIds)*100)/100;
+				console.log("musicMatch = " + musicMatch);
+				if(musicMatch < .06){
+					musicMatch = "different";
+				}else if(.06 < musicMatch < .10){
+					musicMatch = "somewhat similar";
+				}else if(.10 < musicMatch < 1){
+					musicMatch = "similar";
+				}else{
+					musicMatch = "quite similar";
+				}
+				otherUserLocation = doc.loc.coordinates;
+				distance = haversineDistance(loggedInUserLocation, otherUserLocation, true);
+				//TODO. user distance in view is DEV only. they dont need to see exact distance from each other.
+				if(userName == loggedInUserName){
+					res.render('self',{
+					imgUrl:imageSrc,
+						userName:userName,
+						bio: bio,
+						age: age,
+						gender: gender,
+						bands: bands
+					});
+				}else{
+					res.render('profile',{
+						imgUrl:imageSrc,
+						userName:userName,
+						bio: bio,
+						age: age,
+						gender: gender,
+						bands: bands,
+						distance: distance,
+						musicMatch: musicMatch
+					});											
+				}
+			}else{
+				console.log(err);
 			}
-		});
+		}); 
 	}else{
 		console.log("log in to view other user profiles");
 		res.redirect('/')
@@ -483,31 +453,25 @@ app.get('/browse', function(req, res){
 	if(user){
 		console.log("your location = " + loggedInUserLocation);
 		console.log("matches.length = " + matches.length);
-		MongoClient.connect(URI, function(err,db){
+		coll.find(
+		{
+			loc: {$geoWithin:{$centerSphere:[loggedInUserLocation,20/3963.2]}}, ///20 mile radius
+			allBandIds: {$in: userBands}
+		}, 
+		{_id:0,name:1}).toArray(function(err, docs){
 			if(!err){
-				db.collection('bandyUsers').find(
-				{
-					loc: {$geoWithin:{$centerSphere:[loggedInUserLocation,20/3963.2]}}, ///20 mile radius
-					allBandIds: {$in: userBands}
-				}, 
-				{_id:0,name:1}).toArray(function(err, docs){
-					if(!err){
-						docs.forEach(function(doc){
-							if(doc.name != loggedInUserName) matches.push(doc.name);
-							console.log(doc.name + "  " + loggedInUserName);
-						});
-						console.log("matches.length = " + matches.length);
-						if(matches.length > 0){
-							res.redirect(302,'/profile/' + matches[0]);
-						}else{
-							res.send("<h3>No matches at this time, check back later.</h3>");
-						}
-					}else{
-						console.log(err)
-					};
+				docs.forEach(function(doc){
+					if(doc.name != loggedInUserName) matches.push(doc.name);
+					console.log(doc.name + "  " + loggedInUserName);
 				});
+				console.log("matches.length = " + matches.length);
+				if(matches.length > 0){
+					res.redirect(302,'/profile/' + matches[0]);
+				}else{
+					res.send("<h3>No matches at this time, check back later.</h3>");
+				}
 			}else{
-				console.log(err);
+				console.log(err)
 			};
 		});
 	}else{
@@ -533,36 +497,24 @@ app.post('/user-locale', function(req,res){
 	loggedInUserLocation[1] = +req.body.latitude;
 	console.log(loggedInUserLocation);
 	if(loggedInUserLocation){
-		MongoClient.connect(URI, function(err, db){
-			if(!err){
-				console.log('connected to db, updating document...');
-				try{
-					db.collection('bandyUsers').updateOne({"userEmail":auth.currentUser.email},				
-					{$set:{
-						"loc" : {type: "Point", coordinates: loggedInUserLocation}
-					}});
-					res.send("locale updated");
-				}catch(e){
-					console.log(e)
-				};
-			}else{
-				console.log(err);
-				res.send("error updating locale");
-			}
-		});		
+		try{
+			coll.updateOne({"userEmail":auth.currentUser.email},				
+			{$set:{
+				"loc" : {type: "Point", coordinates: loggedInUserLocation}
+			}});
+			res.send("locale updated");
+		}catch(e){
+			console.log(e)
+		};	
 	}
 });
 
 app.get('/add-bands', function(req, res){
-	//if(user){  chasing down the bug....
-		if(environment == "production"){
-			res.render('add-spotify-artists-PROD');
-		}else{
+	if(environment == "production"){
+		res.render('add-spotify-artists-PROD');
+	}else{
 		res.render('add-spotify-artists'); //was: add-bands
-		}
-	//}else{
-		//res.redirect('/')
-	//};
+	}
 });
 
 app.post('/add-bands', function(req, res){
@@ -619,24 +571,17 @@ app.post('/add-bands', function(req, res){
 	};
 
 	function sendData(){ /// TODO: check if email already there, if so, update that document instead of making a new one.
-		MongoClient.connect(URI, function(err,db){
-			console.log("current user email = " + auth.currentUser.email);
-			console.log("inserting into db...");
-			if(!err){
-				db.collection('bandyUsers').insertOne({
-					"userEmail" : auth.currentUser.email,
-					"bands" : bands,
-					"bandIds": bandIds,
-					"relBandIds": relBandIds,
-					"allBandIds": allBandIds
-				});
-				res.send({redirect : '/complete-profile'});
-			}else{
-				console.log(err);
-			}
-		})
+		console.log("current user email = " + auth.currentUser.email);
+		console.log("inserting into db...");
+		coll.insertOne({
+			"userEmail" : auth.currentUser.email,
+			"bands" : bands,
+			"bandIds": bandIds,
+			"relBandIds": relBandIds,
+			"allBandIds": allBandIds
+		});
+		res.send({redirect : '/complete-profile'});
 	};	
-	
 });
 
 app.get('/complete-profile', function(req,res){
@@ -674,78 +619,58 @@ app.post('/complete-profile', function(req,res){
 		});
 	};	
 	function sendData(){
-		MongoClient.connect(URI, function(err, db){
-			if(!err){
-				loggedInUserName = name;
-				var iconPhoto = tinyFace(imgUrl);
-				navPhoto = iconPhoto;
-				try{
-					db.collection('bandyUsers').updateOne({"userEmail":auth.currentUser.email},				
-					{$set:{
-						"name" : name,
-						"photo" : imgUrl,
-						"iconPhoto": iconPhoto,
-						"bio" : bio,
-						"age" : age,
-						"gender" : gender,
-						"completedProfile": true
-					}}, function(err, result){
-						if(err) console.log(err);
-						completedProfile = true;
-						signUpFlow = true;
-					});
-					user.updateProfile({
-						displayName: name
-					}).then(res.redirect(303,'/redirector'));
-				}catch(e){
-					console.log(e)
-				};
-			}else{
-				console.log(err);
-			}
-		})		
+		loggedInUserName = name;
+		var iconPhoto = tinyFace(imgUrl);
+		navPhoto = iconPhoto;
+		try{
+			coll.updateOne({"userEmail":auth.currentUser.email},				
+			{$set:{
+				"name" : name,
+				"photo" : imgUrl,
+				"iconPhoto": iconPhoto,
+				"bio" : bio,
+				"age" : age,
+				"gender" : gender,
+				"completedProfile": true
+			}}, function(err, result){
+				if(err) console.log(err);
+				completedProfile = true;
+				signUpFlow = true;
+			});
+			user.updateProfile({
+				displayName: name
+			}).then(res.redirect(303,'/redirector'));
+		}catch(e){
+			console.log(e)
+		};		
 	}
 });
 
 app.get('/messages', function(req, res){
 	var messages;
-	MongoClient.connect(URI, function(err, db){
-		if(!err){
-			db.collection('bandyUsers').findOne({name: loggedInUserName}, {messages:1}, function(err, doc){
-				messages = doc.messages;
-				res.render('messages', {messages:messages});
-			});
-		}else{
-			console.log(err)
-		}
-	});	
+	coll.findOne({name: loggedInUserName}, {messages:1}, function(err, doc){
+		messages = doc.messages;
+		res.render('messages', {messages:messages});
+	});
 });
 
 app.post('/send-message', function(req, res){
 	var date = new Date();
 	var message = req.body.message;
 	var reciever = req.body.reciever;
-	console.log(message);
-	console.log(reciever);
-	MongoClient.connect(URI, function(err,db){
-		if(!err){
-			db.collection('bandyUsers').findOneAndUpdate(
-				{"name": reciever}, 
-				{$addToSet: 
-					{ "messages": {
-						"tinyFace": navPhoto,
-						"date": date, 
-						"sender": loggedInUserName, 
-						"message": message, 
-						"seen": false
-					}}
-				}
-			);
-			res.send("success");
-		}else{
-			console.log(err);
+	coll.findOneAndUpdate(
+		{"name": reciever}, 
+		{$addToSet: 
+			{ "messages": {
+				"tinyFace": navPhoto,
+				"date": date, 
+				"sender": loggedInUserName, 
+				"message": message, 
+				"seen": false
+			}}
 		}
-	});
+	);
+	res.send("success");
 });
 
 //Authentication. TODO: optimize sign up and login flow, add FB login.
@@ -760,20 +685,13 @@ app.post('/google-sign-in', function(req, res){
 	firebase.auth().signInWithCredential(credential)
 	.then(function(){
 		var userEmail = auth.currentUser.email;
-		MongoClient.connect(URI, function(err,db){
-			if(!err){
-				db.collection('bandyUsers').findOne({"userEmail" : userEmail}, function(err,doc){
-					if(doc && doc.userEmail){
-						console.log("this user email is already in the db...");
-						res.send({"newUser": false});
-					}else{
-						console.log("this user email is new to the db...");
-						res.send({"newUser": true});
-					}
-
-				});
+		coll.findOne({"userEmail" : userEmail}, function(err,doc){
+			if(doc && doc.userEmail){
+				console.log("this user email is already in the db...");
+				res.send({"newUser": false});
 			}else{
-				console.log(err)
+				console.log("this user email is new to the db...");
+				res.send({"newUser": true});
 			}
 		});
 	})
@@ -798,34 +716,26 @@ app.post('/login', function(req, res) {
 		console.log(e.message);
 	};
 	signIn.then(function(){
-		MongoClient.connect(URI, function(err, db){
+		coll.findOne({"userEmail" : auth.currentUser.email}, function(err,doc){
 			if(!err){
-				db.collection('bandyUsers').findOne({"userEmail" : auth.currentUser.email}, function(err,doc){
-					if(!err){
-						doc.bandIds.forEach(function(id){userBands.push(id)});
-						doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});
-						if(doc.completedProfile){
-							console.log("This user has completed their profile.");
-							completedProfile = true;
-							console.log(doc.iconPhoto);
-							navPhoto = doc.iconPhoto;
-						}
-						if(doc.loc){
-							loggedInUserLocation[0] = doc.loc.coordinates[0];
-							loggedInUserLocation[1] = doc.loc.coordinates[1];
-							console.log("added user\'s last location");							
-						};
-						res.redirect('/');
-					}else{
-						console.log(err)
-					};
-					//res.redirect('/');
-				});
+				doc.bandIds.forEach(function(id){userBands.push(id)});
+				doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});
+				if(doc.completedProfile){
+					console.log("This user has completed their profile.");
+					completedProfile = true;
+					console.log(doc.iconPhoto);
+					navPhoto = doc.iconPhoto;
+				}
+				if(doc.loc){
+					loggedInUserLocation[0] = doc.loc.coordinates[0];
+					loggedInUserLocation[1] = doc.loc.coordinates[1];
+					console.log("added user\'s last location");							
+				};
+				res.redirect('/');
 			}else{
 				console.log(err)
 			};
 		});
-		//redirect to /browse was here...
 	}).catch(errorMsg);
 });
   
