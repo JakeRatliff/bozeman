@@ -41,7 +41,6 @@
 	<div id="overlay"></div>
 </div>
 <style>
-
 #cancelMessage,
 #messageSent{
 	display: none;
@@ -80,7 +79,6 @@
 	background-color: black;
 	color: black;
 }
-
 @media (max-width: 600px) {
 	#userInfo{
 		padding-bottom: 45px;
@@ -104,16 +102,14 @@
 		bottom: 35px;
 	}
 	#browsingButtons{
-		height:45px;
+		height:40px;
+		left:0;
 		background: linear-gradient(-45deg, purple, purple, indigo);
-		font-family: helvetica;
-		font-size: 20px;
-		position: fixed;
+		position:fixed;
 		top:100vh;
 		transform:translateY(-100%);
-		left: 0;
-		z-index: 999;
-		width: 100%;
+		width:100%;
+		z-index:999;
 	}	
 	#bands{
 		position:absolute;
@@ -123,7 +119,6 @@
 </style>
 
 <script>
-
 var docHeigth = $(document).height();
 var viewWidth = $(window).width();
 var viewHeight = $(window).height();
@@ -136,8 +131,6 @@ var seeBands = $("#seeBands");
 var hideBands = $("#hideBands");
 var bands = $("#bands");
 var numBands = bands.children().length;
-
-
 nextProfile.one('click', function(){
 	$.ajax({
 		method: "GET",
@@ -150,7 +143,6 @@ nextProfile.one('click', function(){
 		}
 	});
 });
-
 sendMessage.on('click', function(){
 	if(messageBox.is(':visible')){
 		//send the message
@@ -183,10 +175,8 @@ sendMessage.on('click', function(){
 		nextProfile.show();
 	});
 });
-
 seeBands.click(function () {
 	console.log(numBands);
-
 	if(numBands<13){
 		$('#overlay').css("height",docHeigth).fadeIn(300);
 		$('#bands').css("bottom", 100);
@@ -210,8 +200,6 @@ seeBands.click(function () {
 	//$("#profilePic").hide();
 	$(".name").css("color", "white");	
   }); 
-
-
 hideBands.click(function(){
 	$('#overlay').fadeOut(500);
 	bands.slideToggle({
@@ -220,13 +208,10 @@ hideBands.click(function(){
 	$(this).hide();
 	seeBands.show();
 });
-
 $(document).on("mouseenter", "img.bandImg", function(){
 	$(this).addClass("fade").siblings().show();
 });
 $(document).on("mouseleave", "img.bandImg", function(){
 	$(this).removeClass("fade").siblings().hide();
 });
-
-
 </script>

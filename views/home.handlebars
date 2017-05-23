@@ -5,52 +5,39 @@
 
 {{#if loggedInUserName}}
 <div class="container-fluid">
-<div id="dashboard">
-	<div class="row row-dashboard">
-		<div class="col-md-2"></div>
-		<div class="col-md-2 text-center">
-			{{#if msgCount}}
-			<span id="shiftMessagesRight">
-				<span id="messages" class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
-				<span class="badge badge-notify" style="font-size:1.5em;">{{msgCount}}</span>
-			</span>
-			<div>Messages</div>
-			{{else}}
-			<span>
-				<span id="messages" class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
-				<span class="badge badge-notify" style="font-size:1.5em;">{{msgCount}}</span>
-			</span>
-			<div>Messages</div>			
-			{{/if}}
+	<div id="dashboard">
+		<div class="row row-dashboard">
+			<div class="col-md-2"></div>
+			<div class="col-md-2 col-xs-6 text-center">
+				{{#if msgCount}}
+				<span id="shiftMessagesRight">
+					<span id="messages" class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+					<span class="badge badge-notify" style="font-size:1.5em;">{{msgCount}}</span>
+				</span>
+				<div>Messages</div>
+				{{else}}
+				<span>
+					<span id="messages" class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+					<span class="badge badge-notify" style="font-size:1.5em;">{{msgCount}}</span>
+				</span>
+				<div>Messages</div>			
+				{{/if}}
+			</div>
+			<div class="col-md-2 col-xs-6 text-center">
+				<span id="search" class="glyphicon glyphicon-search" aria-hidden="true"></span>
+				<div>Search</div>
+			</div>
+			<div class="col-md-2 col-xs-6 text-center">
+				<span id="edit" class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+				<div>Edit Profile</div>
+			</div>
+			<div class="col-md-2 col-xs-6 text-center">
+				<span id="browseButton" class="glyphicon glyphicon-globe" aria-hidden="true"></span>
+				<div>Browse</div>
+			</div>
+			<div class="col-md-2"></div>
 		</div>
-		<div class="col-md-2 text-center">
-			<span id="search" class="glyphicon glyphicon-search" aria-hidden="true"></span>
-			<div>Search</div>
-		</div>
-		<div class="col-md-2 text-center">
-			<span id="edit" class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-			<div>Edit Profile</div>
-		</div>
-		<div class="col-md-2 text-center">
-			<span id="browseButton" class="glyphicon glyphicon-globe" aria-hidden="true"></span>
-			<div>Browse</div>
-		</div>
-		<div class="col-md-2"></div>
 	</div>
-	<!--div class="row row-dashboard">
-		<div class="col-md-3"></div>
-		<div class="col-md-3 text-center">
-			<span id="search" style="font-size:9em; color:purple" class="glyphicon glyphicon-search" aria-hidden="true"></span>
-		</div>
-		<div class="col-md-3 text-center">
-			<span id="edit" style="font-size:9em; color:purple" class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-		</div>
-		<div class="col-md-3"></div>
-	</div-->
-</div>
-	<!--button id="userMap" class="btn btn-large">User Map</button>
-	<button id="userList" class="btn btn-large">User List</button-->
-
 </div>
 {{else}}
 <div class="container">
@@ -63,16 +50,16 @@
 	<div id="entry">
 	<h3>Log in</h3>
 	<form action='/login' method='POST'>
-	<label>Email: </label><input type="text" id="email" name="email">
-	<label>Pass: </label><input type="text" id="pass" name="pass">
-	<button type="submit" class="login">Log in</button>
+		<label>Email: </label><input type="text" id="email" name="email">
+		<label>Pass: </label><input type="text" id="pass" name="pass">
+		<button type="submit" class="login">Log in</button>
 	</form>
 
 	<h3>New here? Sign up!</h3>
 	<form action='sign-up' method='POST'>
-	<label>Email: </label><input type="text" id="email" name="email">
-	<label>Pass: </label><input type="text" id="pass" name="pass">
-	<button type="submit" class="signup">Sign up</button>
+		<label>Email: </label><input type="text" id="email" name="email">
+		<label>Pass: </label><input type="text" id="pass" name="pass">
+		<button type="submit" class="signup">Sign up</button>
 	</form>
 	</div>
 </div>
