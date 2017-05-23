@@ -1,23 +1,23 @@
 <div class="container">
-
-	<h1 id="userName">{{userName}}</h1>
-	<div>
-		{{#if imgUrl}}
-			<img id="profilePic" style="height:150px;border-radius:3px;" src="{{imgUrl}}">
-		{{else}}
-			<img id="profilePic" style="height:150px;border-radius:3px;" src="https://quinary-niume.scdn3.secure.raxcdn.com/pic/profile/default_profile.jpg">
+	<div id="userInfo">
+		<h1 id="userName">{{userName}}</h1>
+		<div>
+			{{#if imgUrl}}
+				<img id="profilePic" style="height:150px;border-radius:3px;" src="{{imgUrl}}">
+			{{else}}
+				<img id="profilePic" style="height:150px;border-radius:3px;" src="https://quinary-niume.scdn3.secure.raxcdn.com/pic/profile/default_profile.jpg">
+			{{/if}}
+		</div>
+		<h3>About {{userName}}</h3>
+		{{#if distance}}
+		<p id="distance"><strong>Distance:</strong> {{distance}} miles</p>
 		{{/if}}
+		<p>You and {{userName}} have {{musicMatch}} taste in music.</p>
+		<p><strong>Bio:</strong> {{bio}}</p>
+
+		{{#if age}}<p><strong>Age:</strong> {{age}}</p>{{/if}}
+		{{#if gender}}<p><strong>Gender:</strong> {{gender}}</p>{{/if}}
 	</div>
-	<h3>About {{userName}}</h3>
-	{{#if distance}}
-	<p id="distance"><strong>Distance:</strong> {{distance}} miles</p>
-	{{/if}}
-	<p>You and {{userName}} have {{musicMatch}} taste in music.</p>
-	<p><strong>Bio:</strong> {{bio}}</p>
-
-	{{#if age}}<p><strong>Age:</strong> {{age}}</p>{{/if}}
-	{{#if gender}}<p><strong>Gender:</strong> {{gender}}</p>{{/if}} <!-- TODO: CONSIDER MAKING THIS GENDERLESS -->
-
 	<div id="bands" style="display:none">
 		{{#each bands}}
 			<span class='image'>
@@ -38,6 +38,7 @@
 		<button id="nextProfile" class="btn btn-large">Next Profile</button>
 		<button id="cancelMessage" class="btn btn-large">Cancel Message</button>
 	</div>
+	<div id="overlay"></div>
 </div>
 <style>
 
@@ -55,6 +56,7 @@
 }
 .bandImg{
 	height: 175px;
+	width: 175px;
 }
 .image{
 	position:relative;
@@ -80,29 +82,41 @@
 }
 
 @media (max-width: 600px) {
+	#userInfo{
+		padding-bottom: 45px;
+		word-wrap: break-word;
+	}
+	#overlay {
+		background:black;
+		display:none;
+		width:100vw;
+		height:100vh;
+		position:absolute;
+		top:0; 
+		left:0; 
+		z-index:99;
+	}
 	.bandImg {
-		height: 80px;
+		height: 100px;
+		width: 100px;
 	}
 	.name{
-		bottom: 30px;
+		bottom: 35px;
 	}
 	#browsingButtons{
-		height:60px;
+		height:45px;
 		background: linear-gradient(-45deg, purple, purple, indigo);
-		border-bottom: 1px solid white;
 		font-family: helvetica;
 		font-size: 20px;
 		position: fixed;
-		bottom: 0;
+		top:100vh;
+		transform:translateY(-100%);
 		left: 0;
 		z-index: 999;
 		width: 100%;
 	}	
 	#bands{
 		position:absolute;
-		bottom:0;
-		width: 100%;
-		padding-bottom:40px;
 		z-index: 100;
 	}
 }
@@ -110,6 +124,9 @@
 
 <script>
 
+var docHeigth = $(document).height();
+var viewWidth = $(window).width();
+var viewHeight = $(window).height();
 var messageBox = $("#messageBox");
 var cancelMessage = $("#cancelMessage");
 var nextProfile = $("#nextProfile");
@@ -118,6 +135,8 @@ var messageSent = $("#messageSent");
 var seeBands = $("#seeBands");
 var hideBands = $("#hideBands");
 var bands = $("#bands");
+var numBands = bands.children().length;
+
 
 nextProfile.one('click', function(){
 	$.ajax({
@@ -138,7 +157,6 @@ sendMessage.on('click', function(){
 		var message = $("#messageText").val();
 		var reciever = $("#userName").text();
 		console.log(message);
-		console.log('fixin to send the message for ya');
 		$.ajax({
 			method: "POST",
 			url: "/send-message",
@@ -167,26 +185,40 @@ sendMessage.on('click', function(){
 });
 
 seeBands.click(function () {
+	console.log(numBands);
+
+	if(numBands<13){
+		$('#overlay').css("height",docHeigth).fadeIn(300);
+		$('#bands').css("bottom", 100);
+	}
+	if(13<numBands<15){
+		$('#overlay').css("height",docHeigth).fadeIn(300);
+		$('#bands').css("bottom", 0);
+	}
+	if(numBands>15){
+		console.log("more than 15 bands");
+		$('#overlay').css("height",docHeigth+200).fadeIn(300);
+		$('#bands').css("bottom", -125);
+	}
+	bands.css("width", viewWidth-60);
 	bands.slideToggle({
       direction: "up"
-    }, 300);
+    }, 500);
     $(this).hide();
 	hideBands.show();
-	$("div").not($(".name")).addClass("blackout");
-	$("#profilePic").hide();
-	$(".name").css("color", "white");
-	
+	//$("div").not($(".name")).addClass("blackout");
+	//$("#profilePic").hide();
+	$(".name").css("color", "white");	
   }); 
 
 
 hideBands.click(function(){
+	$('#overlay').fadeOut(500);
 	bands.slideToggle({
       direction: "down"
     }, 300);
 	$(this).hide();
-	seeBands.show();	
-	$("div").removeClass("blackout");
-	$("#profilePic").show();
+	seeBands.show();
 });
 
 $(document).on("mouseenter", "img.bandImg", function(){
