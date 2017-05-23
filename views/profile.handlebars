@@ -30,6 +30,7 @@
 	<div id="messageBox">
 		<input id="messageText" type=text>
 	</div>
+	<div id="overlay"></div>
 	<div id="browsingButtons">
 		<button class="btn btn-large btn-info"id="seeBands">See Bands</button>
 		<button style="display:none" class="btn btn-large btn-info"id="hideBands">Hide Bands</button>
@@ -38,7 +39,7 @@
 		<button id="nextProfile" class="btn btn-large">Next Profile</button>
 		<button id="cancelMessage" class="btn btn-large">Cancel Message</button>
 	</div>
-	<div id="overlay"></div>
+	
 </div>
 <style>
 #cancelMessage,
@@ -106,7 +107,7 @@
 		left:0;
 		background: linear-gradient(-45deg, purple, purple, indigo);
 		position:fixed;
-		top:90vh;
+		bottom: 0vh;
 		transform:translateY(-100%);
 		width:100%;
 		z-index:999;
