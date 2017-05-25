@@ -23,8 +23,26 @@ cloudinary.config({
 });
 
 var environment = process.env.environment;
-
 console.log("environment = " + environment);
+
+//mongodb:
+var MongoClient = require('mongodb').MongoClient;
+var URI = process.env.mongoURI_band;
+if(environment == 'production') URI = process.env.MONGODB_URI;
+var db;
+var coll;
+
+console.log("database location  = " + URI);
+var ObjectId = require('mongodb').ObjectID;
+
+MongoClient.connect(URI, function(err, database){
+	if(!err){
+		db = database;
+		coll = db.collection('bandyUsers');
+	}else{
+		console.log(err)
+	}
+});
 
 var session = require('express-session');
 var MongoDBStore = require('connect-mongodb-session')(session);
@@ -82,25 +100,6 @@ var handlebars = require('express-handlebars')
     .create({ defaultLayout:'main' });
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
-
-//mongodb:
-var MongoClient = require('mongodb').MongoClient;
-var URI = process.env.mongoURI_band;
-if(environment == 'production') URI = process.env.MONGODB_URI;
-var db;
-var coll;
-
-console.log("database location  = " + URI);
-var ObjectId = require('mongodb').ObjectID;
-
-MongoClient.connect(URI, function(err, database){
-	if(!err){
-		db = database;
-		coll = db.collection('bandyUsers');
-	}else{
-		console.log(err)
-	}
-});
 
 var newMiddleware = function(req,res,next){
 	res.locals.userEmail = req.session.userEmail;
