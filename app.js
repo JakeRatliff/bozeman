@@ -417,6 +417,7 @@ app.get('/edit', function(req,res){
 });
 
 app.get('/browse', function(req, res){
+	console.log("top of /browse");
 	var matches = [];
 	console.log("userBands = " + req.session.userBands);
 	if(req.session.loggedInUserName){
@@ -435,6 +436,7 @@ app.get('/browse', function(req, res){
 				});
 				console.log("matches.length = " + matches.length);
 				req.session.matches =  matches;
+				req.session.matchIndex = 0;
 				if(matches.length > 0){
 					res.redirect(302,'/profile/' + matches[0]);
 				}else{
@@ -451,17 +453,15 @@ app.get('/browse', function(req, res){
 });
 
 app.get('/next-profile', function(req,res){
-	req.session.matchIndex = 0;
 	var matches = req.session.matches;
-	console.log("matches = \n  " +matches);
-	req.session.matchIndex ++;
-	//if(loggedInUserName == matches[matchIndex]) matchIndex ++; //loggedInUserName is not being added to matches array now
+	req.session.matchIndex++;
 	if(req.session.matchIndex < matches.length){
 		res.send('/profile/' + matches[req.session.matchIndex]);	
 	}else{
-		matches = [];
-		req.session.matchIndex = 0;
-		res.send('/browse')
+		console.log("condition met");
+		//req.session.matches = undefined;
+		//req.session.matchIndex = 0;
+		res.send('/browse');
 	}
 });
 
@@ -563,7 +563,7 @@ app.post('/add-bands', function(req, res){
 });
 
 app.get('/complete-profile', function(req,res){
-	if(user){
+	if(req.session.userEmail){
 		res.render('complete-profile');
 	}else{
 		res.redirect('/')
@@ -597,11 +597,12 @@ app.post('/complete-profile', function(req,res){
 		});
 	};	
 	function sendData(){
+		var user = firebase.auth().currentUser;
 		req.session.loggedInUserName = name; ///TODO: make sure name is unique in db
 		var iconPhoto = tinyFace(imgUrl);
 		req.session.navPhoto = iconPhoto;
 		try{
-			coll.updateOne({"userEmail":auth.currentUser.email},				
+			coll.updateOne({"userEmail":req.session.userEmail},				
 			{$set:{
 				"name" : name,
 				"photo" : imgUrl,
@@ -738,6 +739,7 @@ app.get('/check-session', function(req, res) {
   
 app.post('/sign-up', function(req, res) {
 	console.log("signing user up...");
+	var auth = firebase.auth();
 	var email = req.body.email;
 	var pass = req.body.pass;
 	var signUp = auth.createUserWithEmailAndPassword(email, pass);
@@ -745,6 +747,7 @@ app.post('/sign-up', function(req, res) {
 		console.log(e.message);
 	};
 	signUp.then(function(){
+		req.session.userEmail = email;
 		res.redirect('/add-bands');
 	}).catch(errorMsg);    
 });
