@@ -8,6 +8,8 @@ var request = require('request'); // "Request" library
 var querystring = require('querystring');
 var formidable = require('formidable');
 var jaccard = require('jaccard');
+// Generate a v1 UUID (time-based) 
+var uuidV1 = require('uuid/v1');
 app.use(cookieParser);
 app.use(bodyParser.json() );
 app.use(bodyParser.urlencoded({
@@ -24,10 +26,36 @@ var environment = process.env.environment;
 
 console.log("environment = " + environment);
 
+var session = require('express-session');
+var MongoDBStore = require('connect-mongodb-session')(session);
+ 
+   
+var store = new MongoDBStore(
+    {
+		uri: 'mongodb://localhost:27017/connect_mongodb_session_test' || URI,
+        collection: 'sessions'
+    });
+ 
+    // Catch errors 
+store.on('error', function(error) {
+    assert.ifError(error);
+    assert.ok(false);
+});
+ 
 app.use(require('express-session')({
-    resave: false,
-    saveUninitialized: false,
-    secret: credentials.cookieSecret
+    secret: credentials.cookieSecret,
+    cookie: {
+		maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week 
+    },
+	genid: function(req) {
+		return uuidV1();
+	},
+    store: store,
+    // Boilerplate options, see: 
+    // * https://www.npmjs.com/package/express-session#resave 
+    // * https://www.npmjs.com/package/express-session#saveuninitialized 
+    resave: true,
+    saveUninitialized: true
 }));
 
 var firebase = require("firebase");
@@ -37,53 +65,12 @@ var firebaseConfig = {
   databaseURL: 		credentials.firebaseDatabaseURL,
   storageBucket: 	credentials.firebaseStorageBucket,
 };
-
-console.log(credentials.firebaseApiKey);
-
 firebase.initializeApp(firebaseConfig);
-
 
 var spotify = {
 	clientId: credentials.spotifyClientId,
 	clientSecret: credentials.spotifyClientSecret
 };
-
-console.log("spotify client id = " + spotify.clientId);
-
-///user globals
-var userBands = [];
-var userAllBandIds = [];
-var newMessageCount;
-var completedProfile;
-var navPhoto;
-var auth = firebase.auth();
-var user;
-var loggedInUserLocation = [];
-var loggedInUserName;
-var matches = [];
-var matchIndex = 0;
-var signUpFlow;
-
-auth.onAuthStateChanged(function(firebaseUser){
-	if(firebaseUser){
-		console.log("user is logged in as: " + firebaseUser.email);
-		user = firebase.auth().currentUser;
-	}else{
-		user = null;
-		//res.locals.user = undefined;
-		console.log("not logged in");
-		//TODO remove session
-	}
-});
-
-/*//NFP - TODO:::
-console.log("logging user out...");
-auth.signOut().then(function(){
-	console.log("user has been logged out by server.");
-});
-*/
-
-app.use('/uploads', express.static(__dirname + "/uploads"));
 
 //handlebars:
 var handlebars = require('express-handlebars')
@@ -110,42 +97,17 @@ MongoClient.connect(URI, function(err, database){
 	}
 });
 
-var jakesDevLogger = function(req, res, next){
-	//var user = auth.currentUser;
-	//if(user) user = user.email;
-	if(user){
-		console.log("\nJake's dev logger:\n   User: " + loggedInUserName + "\n   Date: " + new Date()+"\n   req.url: " + req.url+"\n");
-		if(loggedInUserLocation){
-			console.log("User location: Longitude: " + loggedInUserLocation[0] + " , Latitude:" + loggedInUserLocation[1]);
-		}
-	}else{
-		console.log("\Jakes's dev logger: not logged in.");
-	}
+var newMiddleware = function(req,res,next){
+	res.locals.userEmail = req.session.userEmail;
+	res.locals.loggedInUserName = req.session.loggedInUserName;
+	res.locals.navPhoto = req.session.navPhoto;	
 	next();
 };
-app.use(jakesDevLogger);
-app.use(function(req, res, next) {
-    if(res && auth.currentUser){
-		res.locals.userEmail = auth.currentUser.email;	
-	}
-	if(signUpFlow && completedProfile){
-		console.log("loggedInUserName = " + loggedInUserName);
-		res.locals.loggedInUserName = loggedInUserName;
-		res.locals.navPhoto = navPhoto;
-	}
-	if(!signUpFlow && completedProfile && user){
-		loggedInUserName = auth.currentUser.displayName;
-		res.locals.loggedInUserName = loggedInUserName;
-		res.locals.navPhoto = navPhoto;
-	}
-    next();
-});
-
+app.use(newMiddleware);
 var tinyFace = function(x){
 	var index = x.indexOf("/upload")+7;
 	return x.slice(0,index) + "/w_50,h_50,c_thumb,g_face" + x .slice(index)
 }
-
 //calculates distance "as the crow flies" between two coordinates
 function haversineDistance(coords1, coords2, isMiles) {
 	function toRad(x) {
@@ -186,10 +148,12 @@ var authOptions = {
 //ROUTES//
 //////////
 app.get('/', function(req,res){
+	var email = req.session.userEmail;
+	var user = req.session.loggedInUserName;
 	var msgCount;
-	if(completedProfile){
-		console.log("loggedInUserName = " + loggedInUserName);
-		coll.findOne({"name":loggedInUserName},function(err,doc){
+	if(req.session.completedProfile){
+		//console.log("loggedInUserName = " + loggedInUserName);
+		coll.findOne({"userEmail":email},function(err,doc){
 			if(doc.messages){
 				msgCount = doc.messages.length;
 				console.log(msgCount);
@@ -197,7 +161,7 @@ app.get('/', function(req,res){
 			res.render('home',{
 				user:user,
 				msgCount: msgCount,
-				navPhoto: navPhoto
+				//navPhoto: navPhoto
 			});
 		});
 	}else{
@@ -370,8 +334,8 @@ app.get('/list-profiles', function(req, res){
 });
 
 app.get('/profile/:userName', function(req, res){
-console.log(loggedInUserLocation);	
-	if(user){
+//console.log(loggedInUserLocation);	
+	if(req.session.loggedInUserName){
 		var imageSrc;
 		var userName = req.params.userName;
 		var otherUserLocation;
@@ -391,7 +355,7 @@ console.log(loggedInUserLocation);
 				gender = doc.gender;
 				bands = doc.bands;
 				otherUserAllBandIds = doc.allBandIds;
-				musicMatch = Math.floor(jaccard.index(userAllBandIds, otherUserAllBandIds)*100)/100;
+				musicMatch = Math.floor(jaccard.index(req.session.userAllBandIds, otherUserAllBandIds)*100)/100;
 				console.log("musicMatch = " + musicMatch);
 				if(musicMatch < .06){
 					musicMatch = "different";
@@ -403,9 +367,9 @@ console.log(loggedInUserLocation);
 					musicMatch = "quite similar";
 				}
 				otherUserLocation = doc.loc.coordinates;
-				distance = haversineDistance(loggedInUserLocation, otherUserLocation, true);
+				distance = haversineDistance(req.session.loggedInUserLocation, otherUserLocation, true);
 				//TODO. user distance in view is DEV only. they dont need to see exact distance from each other.
-				if(userName == loggedInUserName){
+				if(userName == req.session.loggedInUserName){
 					res.render('self',{
 					imgUrl:imageSrc,
 						userName:userName,
@@ -434,7 +398,7 @@ console.log(loggedInUserLocation);
 		console.log("log in to view other user profiles");
 		res.redirect('/')
 	};
-	console.log("res.locals.user = " + res.locals.user);
+	console.log("res.locals.loggedInUserName = " + res.locals.loggedInUserName);
 });
 
 app.get('/edit', function(req,res){
@@ -449,22 +413,24 @@ app.get('/edit', function(req,res){
 });
 
 app.get('/browse', function(req, res){
-	console.log("userBands = " + userBands);
-	if(user){
-		console.log("your location = " + loggedInUserLocation);
+	var matches = [];
+	console.log("userBands = " + req.session.userBands);
+	if(req.session.loggedInUserName){
+		console.log("your location = " + req.session.loggedInUserLocation);
 		console.log("matches.length = " + matches.length);
 		coll.find(
 		{
-			loc: {$geoWithin:{$centerSphere:[loggedInUserLocation,20/3963.2]}}, ///20 mile radius
-			allBandIds: {$in: userBands}
+			loc: {$geoWithin:{$centerSphere:[req.session.loggedInUserLocation,20/3963.2]}}, ///20 mile radius
+			allBandIds: {$in: req.session.userBands}
 		}, 
 		{_id:0,name:1}).toArray(function(err, docs){
 			if(!err){
 				docs.forEach(function(doc){
-					if(doc.name != loggedInUserName) matches.push(doc.name);
-					console.log(doc.name + "  " + loggedInUserName);
+					if(doc.name != req.session.loggedInUserName) matches.push(doc.name);
+					console.log(doc.name + "  " + req.session.loggedInUserName);
 				});
 				console.log("matches.length = " + matches.length);
+				req.session.matches =  matches;
 				if(matches.length > 0){
 					res.redirect(302,'/profile/' + matches[0]);
 				}else{
@@ -481,24 +447,28 @@ app.get('/browse', function(req, res){
 });
 
 app.get('/next-profile', function(req,res){
-	matchIndex ++;
+	req.session.matchIndex = 0;
+	var matches = req.session.matches;
+	console.log("matches = \n  " +matches);
+	req.session.matchIndex ++;
 	//if(loggedInUserName == matches[matchIndex]) matchIndex ++; //loggedInUserName is not being added to matches array now
-	if(matchIndex < matches.length){
-		res.send('/profile/' + matches[matchIndex]);	
+	if(req.session.matchIndex < matches.length){
+		res.send('/profile/' + matches[req.session.matchIndex]);	
 	}else{
 		matches = [];
-		matchIndex = 0;
+		req.session.matchIndex = 0;
 		res.send('/browse')
 	}
 });
 
 app.post('/user-locale', function(req,res){
+	var loggedInUserLocation = [];
 	loggedInUserLocation[0] = +req.body.longitude;
 	loggedInUserLocation[1] = +req.body.latitude;
-	console.log(loggedInUserLocation);
-	if(loggedInUserLocation){
+	req.session.loggedInUserLocation = loggedInUserLocation;
+	//if(loggedInUserLocation){
 		try{
-			coll.updateOne({"userEmail":auth.currentUser.email},				
+			coll.updateOne({"userEmail":req.session.userEmail},				
 			{$set:{
 				"loc" : {type: "Point", coordinates: loggedInUserLocation}
 			}});
@@ -506,7 +476,7 @@ app.post('/user-locale', function(req,res){
 		}catch(e){
 			console.log(e)
 		};	
-	}
+	//}
 });
 
 app.get('/add-bands', function(req, res){
@@ -524,10 +494,14 @@ app.post('/add-bands', function(req, res){
 	var relBandIds = [];
 	var allBandIds = [];
 	var processedBands = 0;
+	var userBands = [];
+	var userAllBandIds = [];
 
 	bands.forEach(function(band){getRelated(band)});
+	console.log(userBands);
+	req.session.userBands = userBands;
+	req.session.userAllBandIds = userAllBandIds;
 	
-
 	///	doc.bandIds.forEach(function(id){userBands.push(id)});
 	///	doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});
 	
@@ -571,10 +545,10 @@ app.post('/add-bands', function(req, res){
 	};
 
 	function sendData(){ /// TODO: check if email already there, if so, update that document instead of making a new one.
-		console.log("current user email = " + auth.currentUser.email);
+		console.log("current user email = " + req.session.userEmail);
 		console.log("inserting into db...");
 		coll.insertOne({
-			"userEmail" : auth.currentUser.email,
+			"userEmail" : req.session.userEmail,
 			"bands" : bands,
 			"bandIds": bandIds,
 			"relBandIds": relBandIds,
@@ -619,9 +593,9 @@ app.post('/complete-profile', function(req,res){
 		});
 	};	
 	function sendData(){
-		loggedInUserName = name;
+		req.session.loggedInUserName = name; ///TODO: make sure name is unique in db
 		var iconPhoto = tinyFace(imgUrl);
-		navPhoto = iconPhoto;
+		req.session.navPhoto = iconPhoto;
 		try{
 			coll.updateOne({"userEmail":auth.currentUser.email},				
 			{$set:{
@@ -634,8 +608,8 @@ app.post('/complete-profile', function(req,res){
 				"completedProfile": true
 			}}, function(err, result){
 				if(err) console.log(err);
-				completedProfile = true;
-				signUpFlow = true;
+				req.session.completedProfile = true;
+				req.session.signUpFlow = true;
 			});
 			user.updateProfile({
 				displayName: name
@@ -648,7 +622,7 @@ app.post('/complete-profile', function(req,res){
 
 app.get('/messages', function(req, res){
 	var messages;
-	coll.findOne({name: loggedInUserName}, {messages:1}, function(err, doc){
+	coll.findOne({name: req.session.loggedInUserName}, {messages:1}, function(err, doc){
 		messages = doc.messages;
 		res.render('messages', {messages:messages});
 	});
@@ -662,9 +636,9 @@ app.post('/send-message', function(req, res){
 		{"name": reciever}, 
 		{$addToSet: 
 			{ "messages": {
-				"tinyFace": navPhoto,
+				"tinyFace": req.session.navPhoto,
 				"date": date, 
-				"sender": loggedInUserName, 
+				"sender": req.session.loggedInUserName, 
 				"message": message, 
 				"seen": false
 			}}
@@ -708,6 +682,7 @@ app.post('/google-sign-in', function(req, res){
 });
 
 app.post('/login', function(req, res) {
+	var auth = firebase.auth();
 	console.log("logging user in...");
 	var email = req.body.email;
 	var pass = req.body.pass;
@@ -716,27 +691,45 @@ app.post('/login', function(req, res) {
 		console.log(e.message);
 	};
 	signIn.then(function(){
-		coll.findOne({"userEmail" : auth.currentUser.email}, function(err,doc){
+		var userBands = [];
+		var userAllBandIds = [];
+		var loggedInUserLocation = [];
+		var email = auth.currentUser.email;
+		req.session.userEmail = email;
+		coll.findOne({"userEmail" : email}, function(err,doc){
 			if(!err){
-				doc.bandIds.forEach(function(id){userBands.push(id)});
-				doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});
-				if(doc.completedProfile){
+				if(doc.bandIds){
+					doc.bandIds.forEach(function(id){userBands.push(id)});
+					doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});					
+				}else{
+					res.redirect(303, '/add-bands');
+				}
+				if(doc.bandIds && doc.completedProfile){
 					console.log("This user has completed their profile.");
-					completedProfile = true;
-					console.log(doc.iconPhoto);
-					navPhoto = doc.iconPhoto;
+					req.session.completedProfile = true;
+					req.session.navPhoto = doc.iconPhoto;
+					req.session.loggedInUserName = doc.name;
+				}else{
+					res.redirect(303, '/complete-profile');
 				}
 				if(doc.loc){
 					loggedInUserLocation[0] = doc.loc.coordinates[0];
 					loggedInUserLocation[1] = doc.loc.coordinates[1];
 					console.log("added user\'s last location");							
 				};
+				req.session.userBands = userBands;
+				req.session.userAllBandIds = userAllBandIds;
+				req.session.loggedInUserLocation = loggedInUserLocation;
 				res.redirect('/');
 			}else{
 				console.log(err)
 			};
 		});
 	}).catch(errorMsg);
+});
+
+app.get('/check-session', function(req, res) {
+    res.send(JSON.stringify(req.session));
 });
   
 app.post('/sign-up', function(req, res) {
@@ -755,16 +748,28 @@ app.post('/sign-up', function(req, res) {
 app.get('/logout', function(req, res) {
 	console.log("logging user out...");
 	signUpFlow = false;
+	/*
 	auth.signOut().then(function(){
 		res.redirect('/');
-	});
+	});*/
+	req.session.destroy(function(err) {
+		// cannot access session here
+		console.log("session ended");
+		res.redirect('/');
+	})
 });
 
 app.post('/logout', function(req, res) {
+	//var auth = firebase.auth();
 	console.log("logging user out...");
+	req.session.destroy(function(err) {
+	  // cannot access session here
+	  console.log("session ended");
+	  res.redirect('/');
+	})/*
 	auth.signOut().then(function(){
 		res.redirect('/');
-	});
+	});*/
 });
 
 //404 page:
