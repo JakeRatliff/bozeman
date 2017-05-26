@@ -16,38 +16,36 @@
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">	
 </head>
 <body>
-<div class="tempNav">
 <!--a href="/">Home</a-->
+
 {{#if loggedInUserName}}
-<div id="loggedInNavBar">
-	<a id="brand" href="/" class="nav-link">Home</a>	
-	<a href="/profile/{{loggedInUserName}}">Profile</a>
-	<a href="/browse">Browse</a>	
-	<span  id="loggedInUserInfo" style="position:absolute;right: 0px;">
-		<span>{{loggedInUserName}}</span>	
-		<span id="navBarPhoto">
-			<img id="navPhotoImg" src="{{navPhoto}}">
+	<div id="loggedInNavBar">
+		<a id="brand" href="/" class="nav-link">Home</a>	
+		<a href="/profile/{{loggedInUserName}}">Profile</a>
+		<a href="/browse">Browse</a>	
+		<span  id="loggedInUserInfo" style="position:absolute;right: 0px;">
+			<span>{{loggedInUserName}}</span>	
+			<span id="navBarPhoto">
+				<img id="navPhotoImg" src="{{navPhoto}}">
+			</span>
 		</span>
-	</span>
-</div>
-<div class="nav-dropdown right">
-	<a href="/logout">Log Out</a>
-	<a href="/user-map">User Map</a>
-	<a href="/list-profiles">All Profiles</a>
-</div>
+	</div>
+	<div class="nav-dropdown right">
+		<a href="/logout">Log Out</a>
+		<a href="/user-map">User Map</a>
+		<a href="/list-profiles">All Profiles</a>
+	</div>
 {{/if}}
 
-</div>
-	<div id="container">
+	<div class="container">
 		{{{body}}}
 	</div>
 </body>
 
 <style>
 
-
 #loggedInUserInfo{
-	padding-right: 10px;
+	
 	padding-top: 2px;
 }
 
@@ -66,47 +64,38 @@
 }
 
 .nav-link{
-	height: 60px;
+	height: 8vh;
 	line-height: 55px;
 	white-space: nowrap;
-	padding-left: 10px;
+	padding-left: 2vw;
 }
 .right {
     position: absolute;
-    right: 0px;
+    right: 0;
 }
 
 #loggedInNavBar{
-	height:60px;
+	height:8vh;
 	background: linear-gradient(-45deg, purple, purple, indigo);
-	border-bottom: 1px solid white;
+	border-bottom: 1px solid indigo;
 	color: white;
 	font-family: helvetica;
-	font-size: 20px;
+	font-size: 130%;
 	position: fixed;
 	top: 0;
 	left: 0;
 	z-index: 999;
-	width: 100%;
+	width: 100vw;
 }
 
-#container{
-	margin-top: 60px;
+.container{
+	margin-top: 8vh;
 }
 
 #navPhotoImg{
-	height:50px;
-	border-radius:40px;
+	height:7.5vh;
+	border-radius:100%;
 	border: 1px solid indigo;
-}
-
-#userLoggedIn form{
-	background-color: blue;
-	display: inline;
-}
-
-#userLoggedIn{
-	margin:30px;
 }
 
 </style>

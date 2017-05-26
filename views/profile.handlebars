@@ -1,4 +1,4 @@
-<div class="container">
+
 	<div id="userInfo">
 		<h1 id="userName">{{userName}}</h1>
 		<div>
@@ -31,24 +31,28 @@
 		<input id="messageText" type=text>
 	</div>
 	<div id="overlay"></div>
+	<div id="messageSent" class="alert alert-success">Message Sent!</div>
 	<div id="browsingButtons">
-		<button class="btn btn-large btn-info"id="seeBands">See Bands</button>
-		<button style="display:none" class="btn btn-large btn-info"id="hideBands">Hide Bands</button>
-		<button id="sendMessage" class="btn btn-large">Send Message</button>
-		<div id="messageSent" class="alert alert-success">Message Sent!</div>
-		<button id="nextProfile" class="btn btn-large">Next Profile</button>
-		<button id="cancelMessage" class="btn btn-large">Cancel Message</button>
+		<div id="browsingButtonGroup">
+			<span class="browsingButton" id="seeBands">See Bands</span>
+			<span style="display:none" class="browsingButton"id="hideBands">Hide Bands</span>
+			<span id="sendMessage" class="browsingButton">Send Message</span>
+			<span id="nextProfile" class="browsingButton">Next Profile</span>
+			<span id="cancelMessage" class="browsingButton">Cancel Message</span>
+		</div>
 	</div>
 	
-</div>
 <style>
 #cancelMessage,
 #messageSent{
 	display: none;
+	margin-bottom: 8vh;
 }
 #messageBox{
 	display: none;
 	height: 150px;
+	margin-bottom: 8vh;
+	z-index: 100;
 }
 #messageText{
 	height: 135px;
@@ -81,6 +85,7 @@
 	color: black;
 }
 @media (max-width: 600px) {
+
 	#userInfo{
 		padding-bottom: 45px;
 		word-wrap: break-word;
@@ -100,18 +105,31 @@
 		width: 100px;
 	}
 	.name{
-		bottom: 35px;
+		bottom: 20%;
 	}
 	#browsingButtons{
-		height:40px;
 		left:0;
 		background: linear-gradient(-45deg, purple, purple, indigo);
+		height:7vh;
+		bottom: -7vh;
 		position:fixed;
-		bottom: -6vh;
 		transform:translateY(-100%);
-		width:100%;
+		width:100vw;
 		z-index:999;
-	}	
+	}
+	#browsingButtonGroup{
+		position: relative;		
+	}
+	.browsingButton{
+		text-align: center;
+		font-size: 1.10em;
+		padding-top: 2vh;
+		height: 7vh;
+		width: 32%;
+		display: inline-block;
+		border-left: 1px solid white;
+		color: white;
+	}
 	#bands{
 		position:absolute;
 		z-index: 100;
