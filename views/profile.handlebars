@@ -136,7 +136,6 @@
 		border-right: 1px solid white;
 	}
 	#bands{
-		padding-top:8vh;
 		position:absolute;
 		z-index: 100;
 	}
@@ -144,9 +143,7 @@
 </style>
 
 <script>
-var docHeight = $(document).height();
-var viewWidth = $(window).width();
-var viewHeight = $(window).height();
+
 var messageBox = $("#messageBox");
 var cancelMessage = $("#cancelMessage");
 var nextProfile = $("#nextProfile");
@@ -155,6 +152,7 @@ var messageSent = $("#messageSent");
 var seeBands = $("#seeBands");
 var hideBands = $("#hideBands");
 var bands = $("#bands");
+var overlay = $('#overlay');
 var numBands = bands.children().length;
 nextProfile.one('click', function(){
 	$.ajax({
@@ -202,20 +200,29 @@ sendMessage.on('click', function(){
 });
 seeBands.click(function () {
 	console.log(numBands);
+	var docHeight = $(document).height();
+	var viewWidth = $(window).width();
+	var viewHeight = $(window).height();
+	var topPadding = viewHeight*.08;
+	
+	overlay.css("height",docHeight).fadeIn(300);
+	bands.css("padding-top",topPadding);
+	
 	if(numBands<13){
-		$('#overlay').css("height",docHeight).fadeIn(300);
-		$('#bands').css("bottom", 100);
+		overlay.css("height",docHeight).fadeIn(300);
+		bands.css("bottom", 100);
 	}
 	if(13<numBands<15){
-		$('#overlay').css("height",docHeight).fadeIn(300);
-		$('#bands').css("bottom", 0);
+		overlay.css("height",docHeight).fadeIn(300);
+		bands.css("bottom", 0);
 	}
 	if(numBands>15){
 		console.log("more than 15 bands");
-		$('#overlay').css("height",docHeight+200).fadeIn(300);
-		$('#bands').css("bottom", -125);
+		overlay.css("height",docHeight+200).fadeIn(300);
+		bands.css("bottom", -125);
 	}
-	bands.css("width", viewWidth-60);
+	//bands.css("width", viewWidth-60);
+	//bands.css("padding-top", viewHeight);
 	bands.slideToggle({
       direction: "up"
     }, 500);
@@ -226,7 +233,7 @@ seeBands.click(function () {
 	$(".name").css("color", "white");	
   }); 
 hideBands.click(function(){
-	$('#overlay').fadeOut(500);
+	overlay.fadeOut(500);
 	bands.slideToggle({
       direction: "down"
     }, 300);
