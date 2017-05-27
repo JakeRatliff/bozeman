@@ -136,6 +136,7 @@
 		border-right: 1px solid white;
 	}
 	#bands{
+		padding-top:8vh;
 		position:absolute;
 		z-index: 100;
 	}
@@ -143,7 +144,7 @@
 </style>
 
 <script>
-var docHeigth = $(document).height();
+var docHeight = $(document).height();
 var viewWidth = $(window).width();
 var viewHeight = $(window).height();
 var messageBox = $("#messageBox");
@@ -202,16 +203,16 @@ sendMessage.on('click', function(){
 seeBands.click(function () {
 	console.log(numBands);
 	if(numBands<13){
-		$('#overlay').css("height",docHeigth).fadeIn(300);
+		$('#overlay').css("height",docHeight).fadeIn(300);
 		$('#bands').css("bottom", 100);
 	}
 	if(13<numBands<15){
-		$('#overlay').css("height",docHeigth).fadeIn(300);
+		$('#overlay').css("height",docHeight).fadeIn(300);
 		$('#bands').css("bottom", 0);
 	}
 	if(numBands>15){
 		console.log("more than 15 bands");
-		$('#overlay').css("height",docHeigth+200).fadeIn(300);
+		$('#overlay').css("height",docHeight+200).fadeIn(300);
 		$('#bands').css("bottom", -125);
 	}
 	bands.css("width", viewWidth-60);
