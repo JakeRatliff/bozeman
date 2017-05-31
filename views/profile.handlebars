@@ -1,5 +1,6 @@
 
-	<div id="userInfo">
+<div id="content">
+	<div id="writtenContent">
 		<h1 id="userName">{{userName}}</h1>
 		<div>
 			{{#if imgUrl}}
@@ -18,142 +19,154 @@
 		{{#if age}}<p><strong>Age:</strong> {{age}}</p>{{/if}}
 		{{#if gender}}<p><strong>Gender:</strong> {{gender}}</p>{{/if}}
 	</div>
-	<div id="bands" style="display:none">
-		{{#each bands}}
-			<span class='image'>
-				<img class='bandImg' src="{{this.artistImage}}">
-				<div class='name'>{{this.name}}</div>
-			</span>
-		{{/each}}
-	</div>
 
-	<div id="messageBox">
-		<input id="messageText" type=text>
+<div id="images">  
+	{{#each bands}}
+    <span class="image">
+		<img src="{{this.artistImage}}">
+		<span class='name'>{{this.name}}</span>
+    </span>
+	{{/each}}
+</div>
+   <div id="messageBox" style="display:none;">
+		<textarea></textarea>
+   </div>
+</div>
+
+<div class="nav" id="bottomNav">
+	<div id="bottomButtonGroup">
+		<span id="primary">
+			<span class="bottomNavButton" id="showImages">Show Bands</span>
+			<span class="bottomNavButton" id="message">Message</span>
+			<span class="bottomNavButton" id="messageSent" style="display:none;">Message Sent!</span>
+			<span class="bottomNavButton" id="nextProfile">Next Profile</span>
+		</span>
+		<span id="secondary" style="display:none;">
+			<span class="bottomNavButton" id="sendMessage">Send Message</span>
+			<span class="bottomNavButton" id="cancelMessage">Cancel Message</span>
+		</span>
 	</div>
-	<div id="overlay"></div>
-	<div id="messageSent" class="alert alert-success">Message Sent!</div>
-	<div id="browsingButtons">
-		<div id="browsingButtonGroup">
-			<span class="browsingButton" id="seeBands">See Bands</span>
-			<span style="display:none" class="browsingButton"id="hideBands">Hide Bands</span>
-			<span id="sendMessage" class="browsingButton">Send Message</span>
-			<span id="nextProfile" class="browsingButton">Next Profile</span>
-			<span id="cancelMessage" class="browsingButton">Cancel Message</span>
-		</div>
-	</div>
-	
+</div>
 <style>
-#cancelMessage,
-#messageSent{
-	display: none;
-	margin-bottom: 8vh;
+.nav{
+	height:8vh;
+	background: linear-gradient(-45deg, purple, purple, indigo);
+	color: white;
+	font-family: helvetica;
+	font-size: 20px;
+	position: fixed;
+	left: 0;
+	width: 100%;
+	z-index: 999;
 }
-#messageBox{
-	display: none;
-	height: 150px;
-	margin-bottom: 8vh;
-	z-index: 100;
+#topNav{
+	top: 0vh;
 }
-#messageText{
-	height: 135px;
-	width: 90%;
+#bottomNav{
+	bottom: -8.1vh;
+	transform:translateY(-100%);  
 }
-.bandImg{
-	height: 175px;
-	width: 175px;
+#content{
+	padding-bottom:8vh;
 }
-.image{
+#images{
+	display:none;
+	z-index:100;
+	bottom:0;
+	text-align:center;
+}
+#images .image{
+	display: inline-block;
 	position:relative;
 	text-align:center;
-	float: left;		
+}
+#images span img{
+	height: 100px;
+	width: 100px;
+}
+#bottomButtonGroup{
+	font-size: .75em;
+	border-right: 1px solid white;
+	text-align: center;
+	height:100%;
+}
+.bottomNavButton{
+	text-align: center;
+	height: 100%;
+	width: 32%;
+	display: inline-block;
+	color: white;
+    padding-top:2vh;
+}
+#message{
+	border-left: 1px solid white;
+	border-right: 1px solid white;
+}
+
+#messageBox{
+  position:fixed;
+  bottom: 6.7vh;
+  width:98.2%;
+  left:0;
+  border: 2px solid purple;
+  background: purple;
+  z-index:100;
+}
+#messageBox textarea{
+  resize: none;
+  width:98%;
+  height: 30vh;
+}
+#secondary .bottomNavButton{
+	width: 48%;
+}
+#sendMessage{
+  border-right: 1px solid white;
+}
+#messageSent{
+	border-left: 1px solid white;
+	border-right: 1px solid white;	
+	background:lightseagreen;
+	color: darkgreen;
+}
+.blackout{
+	background-color: black;
+	-webkit-transition: all 0.5s ease-in-out;
+	-moz-transition: all 0.5s ease-in-out;
+	-ms-transition: all 0.5s ease-in-out;
+	-o-transition: all 0.5s ease-in-out;
+	transition: all 0.5s ease-in-out;
 }
 .name{
 	display: none;
-	color: black;
-    left: 0;
+	color: white;
+	left: 0;
 	position:absolute;
-	bottom: 80px;
 	width: 100%;
 	font-weight: bold;
 	pointer-events:none;
+	bottom: 50%;
+	text-align: center;
+	transform: translateY(50%)
 }
 .fade{
 	opacity: .2;
 }
-.blackout{
-	background-color: black;
-	color: black;
-}
-@media (max-width: 600px) {
-
-	#userInfo{
-		padding-bottom: 45px;
-		word-wrap: break-word;
-	}
-	#overlay {
-		background:black;
-		display:none;
-		width:100vw;
-		height:100vh;
-		position:absolute;
-		top:0; 
-		left:0; 
-		z-index:99;
-	}
-	.bandImg {
-		height: 100px;
-		width: 100px;
-	}
-	.name{
-		bottom: 20%;
-	}
-	#browsingButtons{
-		left:0;
-		background: linear-gradient(-45deg, purple, purple, indigo);
-		height:7vh;
-		bottom: -7vh;
-		position:fixed;
-		transform:translateY(-100%);
-		width:100vw;
-		z-index:999;
-	}
-	#browsingButtonGroup{
-		position: relative;		
-	}
-	.browsingButton{
-		text-align: center;
-		font-size: 1.10em;
-		padding-top: 2vh;
-		height: 7vh;
-		width: 32%;
-		display: inline-block;
-		color: white;
-	}
-	#nextProfile{
-		border-left: 1px solid white;
-	}
-	#seeBands{
-		border-right: 1px solid white;
-	}
-	#bands{
-		position:absolute;
-		z-index: 100;
-	}
-}
 </style>
 
-<script>
-
+<script>var showImages = $("#showImages");
+var hideImages = $("#hideImages");
+var images = $("#images");
+var overlay = $("#overlay");
+var docHeight = $(document).height();
+var writtenContent = $("#writtenContent");
+var counter = 0;
 var messageBox = $("#messageBox");
-var cancelMessage = $("#cancelMessage");
+var message = $("#message");
 var nextProfile = $("#nextProfile");
+var cancelMessage = $("#cancelMessage");
 var sendMessage = $("#sendMessage");
 var messageSent = $("#messageSent");
-var seeBands = $("#seeBands");
-var hideBands = $("#hideBands");
-var bands = $("#bands");
-var overlay = $('#overlay');
-var numBands = bands.children().length;
 nextProfile.one('click', function(){
 	$.ajax({
 		method: "GET",
@@ -166,84 +179,56 @@ nextProfile.one('click', function(){
 		}
 	});
 });
-sendMessage.on('click', function(){
-	if(messageBox.is(':visible')){
-		//send the message
-		var message = $("#messageText").val();
-		var reciever = $("#userName").text();
-		console.log(message);
-		$.ajax({
-			method: "POST",
-			url: "/send-message",
-			data: {
-			"message" : message,
-			"reciever" : reciever
-			}
-		}).done(function(response){
-			console.log(response);
-			messageBox.fadeOut();
-			sendMessage.hide();
-			messageSent.show();
-		});
-		cancelMessage.hide();
-		nextProfile.show();
-	}else{
-		cancelMessage.show();
-		nextProfile.hide();
-		messageBox.show();
-	}	
-	cancelMessage.on('click', function(){
-		messageBox.hide();
-		$(this).hide();
-		nextProfile.show();
+showImages.click(function(){
+	counter++;
+	$(this).html("Show Bands");
+	if(counter%2 > 0) $(this).html("Hide Bands");
+	$("body").toggleClass("blackout", 300);
+	images.slideToggle({
+		direction: "up"
+	}, 600);
+	writtenContent.slideToggle({
+		direction: "up"
+	}, 600);
+});
+message.click(function(){
+	$("#primary").fadeToggle("fast");
+	$("#secondary").fadeToggle("fast");
+	messageBox.slideToggle({
+		direction: "up"
+	}, 600);
+});
+cancelMessage.click(function(){
+	$("#primary").fadeToggle("fast");
+	$("#secondary").fadeToggle("fast");
+	messageBox.slideToggle({
+		direction: "up"
+	}, 600);
+});
+sendMessage.one('click', function(){
+	var content = $("#messageBox textarea").val();
+	var reciever = $("#userName").text();
+	$.ajax({
+		method: "POST",
+		url: "/send-message",
+		data: {
+		"message" : content,
+		"reciever" : reciever
+		}
+	}).done(function(response){
+		$("#primary").fadeToggle("fast");
+		$("#secondary").fadeToggle("fast");
+		messageBox.slideToggle({
+			direction: "up"
+		}, 600);
+		message.hide();
+		messageSent.show();
 	});
 });
-seeBands.click(function () {
-	console.log(numBands);
-	var docHeight = $(document).height();
-	var viewWidth = $(window).width();
-	var viewHeight = $(window).height();
-	var topPadding = viewHeight*.08;
-	
-	overlay.css("height",docHeight).fadeIn(300);
-	bands.css("padding-top",topPadding);
-	
-	if(numBands<13){
-		overlay.css("height",docHeight).fadeIn(300);
-		bands.css("bottom", 100);
-	}
-	if(13<numBands<15){
-		overlay.css("height",docHeight).fadeIn(300);
-		bands.css("bottom", 0);
-	}
-	if(numBands>15){
-		console.log("more than 15 bands");
-		overlay.css("height",docHeight+200).fadeIn(300);
-		bands.css("bottom", -125);
-	}
-	//bands.css("width", viewWidth-60);
-	//bands.css("padding-top", viewHeight);
-	bands.slideToggle({
-      direction: "up"
-    }, 500);
-    $(this).hide();
-	hideBands.show();
-	//$("div").not($(".name")).addClass("blackout");
-	//$("#profilePic").hide();
-	$(".name").css("color", "white");	
-  }); 
-hideBands.click(function(){
-	overlay.fadeOut(500);
-	bands.slideToggle({
-      direction: "down"
-    }, 300);
-	$(this).hide();
-	seeBands.show();
-});
-$(document).on("mouseenter", "img.bandImg", function(){
+$(document).on("mouseenter", "#images .image img", function(){
 	$(this).addClass("fade").siblings().show();
 });
-$(document).on("mouseleave", "img.bandImg", function(){
+$(document).on("mouseleave", "#images .image img", function(){
 	$(this).removeClass("fade").siblings().hide();
 });
 </script>
