@@ -372,7 +372,7 @@ app.get('/profile/:userName', function(req, res){
 				}
 				otherUserLocation = doc.loc.coordinates;
 				distance = haversineDistance(req.session.loggedInUserLocation, otherUserLocation, true);
-				//TODO. user distance in view is DEV only. they dont need to see exact distance from each other.
+				//TODO. exact user distance in view is DEV only. they dont need to see exact distance from each other.
 				if(userName == req.session.loggedInUserName){
 					res.render('self',{
 					imgUrl:imageSrc,
