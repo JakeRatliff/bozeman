@@ -24,7 +24,7 @@
 				{{/if}}
 			</div>
 			<div class="col-md-2 col-xs-6 text-center">
-				<span id="search" class="glyphicon glyphicon-search" aria-hidden="true"></span>
+				<span id="search" class="glyphicon glyphicon-heart-empty" aria-hidden="true"></span>
 				<div>Search</div>
 			</div>
 			<div class="col-md-2 col-xs-6 text-center">
@@ -88,7 +88,6 @@ function onSignIn(googleUser) {
 #shiftMessagesRight{
 	padding-left:30px;
 }
-
 .row-dashboard{
 	margin-top:120px;
 }
@@ -115,11 +114,13 @@ function onSignIn(googleUser) {
 
 <script>
 var screenHeight = screen.height;
-console.log(screenHeight);
 var docHeight = $(document).height();
-console.log(docHeight);
+var screenWidth = screen.width;
 $(document).ready(function(){
 	$("body").height(docHeight - 60);
+	if($("#shiftMessagesRight")){
+		$(".glyphicon").addClass("smaller-glyph");
+	}
 });
 
 
