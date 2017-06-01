@@ -118,19 +118,13 @@ var docHeight = $(document).height();
 var screenWidth = screen.width;
 $(document).ready(function(){
 	$("body").height(docHeight - 60);
-	if($("#shiftMessagesRight")){
-		$(".glyphicon").addClass("smaller-glyph");
-	}
 });
-
-
 var messages = $("#messages");
 var userMap = $("#userMap");
 var userList = $("#userList");
 var browse = $("#browseButton");
 var search = $("#search");
 var edit = $("#edit");
-
 messages.on('click', function(){
 	window.location.href = '/messages';
 });
