@@ -655,19 +655,29 @@ app.post('/send-message', function(req, res){
 //Authentication. TODO: optimize sign up and login flow, add FB login.
 
 app.post('/google-sign-in', function(req, res){
-	//console.log("top of google sign in route");
-	//console.log(req.body);
+	console.log("top of google sign in route");
+	console.log(req.body);
+	var auth = firebase.auth();
 	var id_token = req.body.id_token;
 	// Build Firebase credential with the Google ID token.
 	var credential = firebase.auth.GoogleAuthProvider.credential(id_token);
+	console.log("credential = " + credential);
 	// Sign in with credential from the Google user.
-	firebase.auth().signInWithCredential(credential)
+	auth.signInWithCredential(credential)
 	.then(function(){
-		var userEmail = auth.currentUser.email;
-		coll.findOne({"userEmail" : userEmail}, function(err,doc){
+		var email = auth.currentUser.email;
+		req.session.userEmail = email;
+		coll.findOne({"userEmail" : email}, function(err,doc){
 			if(doc && doc.userEmail){
 				console.log("this user email is already in the db...");
-				res.send({"newUser": false});
+				if(doc.name){
+					req.session.loggedInUserName = doc.name;
+					req.session.completedProfile = true;
+					req.session.navPhoto = doc.iconPhoto;
+					res.send({"newUser": false});
+				}else{
+					res.send({"incompleteProfile": true});
+				}				
 			}else{
 				console.log("this user email is new to the db...");
 				res.send({"newUser": true});
@@ -687,6 +697,54 @@ app.post('/google-sign-in', function(req, res){
 });
 
 app.post('/login', function(req, res) {
+	var loginFlow = function(){
+		var userBands = [];
+		var userAllBandIds = [];
+		var loggedInUserLocation = [];
+		var email = auth.currentUser.email;
+		req.session.userEmail = email;
+		coll.findOne({"userEmail" : email}, function(err,doc){
+			if(!err){
+				if(doc){
+					if(doc.bandIds){
+					doc.bandIds.forEach(function(id){userBands.push(id)});
+					doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});					
+					}else{
+						res.redirect(303, '/add-bands');
+					}
+					if(doc.bandIds && doc.completedProfile){
+						console.log("This user has completed their profile.");
+						req.session.completedProfile = true;
+						req.session.navPhoto = doc.iconPhoto;
+						req.session.loggedInUserName = doc.name;
+					}else{
+						res.redirect(303, '/complete-profile');
+					}
+					if(doc.loc){
+						loggedInUserLocation[0] = doc.loc.coordinates[0];
+						loggedInUserLocation[1] = doc.loc.coordinates[1];
+						console.log("added user\'s last location");							
+					};
+					req.session.userBands = userBands;
+					req.session.userAllBandIds = userAllBandIds;
+					req.session.loggedInUserLocation = loggedInUserLocation;
+					res.redirect('/');
+				}else{
+					req.session.userEmail = email;
+					res.redirect('/add-bands');
+				}				
+			}else{
+				console.log(err)
+			};
+		});
+	}
+	/*if(req.body.id_token){
+		var id_token = req.body.id_token;
+		// Build Firebase credential with the Google ID token.
+		var credential = firebase.auth.GoogleAuthProvider.credential(id_token);
+		// Sign in with credential from the Google user.
+		firebase.auth().signInWithCredential(credential).then(loginFlow);
+	}*/
 	var auth = firebase.auth();
 	console.log("logging user in...");
 	var email = req.body.email;
@@ -695,42 +753,7 @@ app.post('/login', function(req, res) {
 	var errorMsg = function(e){
 		console.log(e.message);
 	};
-	signIn.then(function(){
-		var userBands = [];
-		var userAllBandIds = [];
-		var loggedInUserLocation = [];
-		var email = auth.currentUser.email;
-		req.session.userEmail = email;
-		coll.findOne({"userEmail" : email}, function(err,doc){
-			if(!err){
-				if(doc.bandIds){
-					doc.bandIds.forEach(function(id){userBands.push(id)});
-					doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});					
-				}else{
-					res.redirect(303, '/add-bands');
-				}
-				if(doc.bandIds && doc.completedProfile){
-					console.log("This user has completed their profile.");
-					req.session.completedProfile = true;
-					req.session.navPhoto = doc.iconPhoto;
-					req.session.loggedInUserName = doc.name;
-				}else{
-					res.redirect(303, '/complete-profile');
-				}
-				if(doc.loc){
-					loggedInUserLocation[0] = doc.loc.coordinates[0];
-					loggedInUserLocation[1] = doc.loc.coordinates[1];
-					console.log("added user\'s last location");							
-				};
-				req.session.userBands = userBands;
-				req.session.userAllBandIds = userAllBandIds;
-				req.session.loggedInUserLocation = loggedInUserLocation;
-				res.redirect('/');
-			}else{
-				console.log(err)
-			};
-		});
-	}).catch(errorMsg);
+	signIn.then(loginFlow).catch(errorMsg);
 });
 
 app.get('/check-session', function(req, res) {

@@ -11,7 +11,7 @@
 			<div class="col-md-2 col-xs-6 text-center">
 				{{#if msgCount}}
 				<span id="shiftMessagesRight">
-					<span id="messages" class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+					<span id="messages" class="glyphicon smaller-glyph glyphicon-envelope" aria-hidden="true"></span>
 					<span class="badge badge-notify" style="font-size:1.5em;">{{msgCount}}</span>
 				</span>
 				<div>Messages</div>
@@ -28,12 +28,12 @@
 				<div>Search</div>
 			</div>
 			<div class="col-md-2 col-xs-6 text-center">
-				<span id="edit" class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-				<div>Edit Profile</div>
-			</div>
-			<div class="col-md-2 col-xs-6 text-center">
 				<span id="browseButton" class="glyphicon glyphicon-globe" aria-hidden="true"></span>
 				<div>Browse</div>
+			</div>
+			<div class="col-md-2 col-xs-6 text-center">
+				<span id="edit" class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+				<div>Edit Profile</div>
 			</div>
 			<div class="col-md-2"></div>
 		</div>
@@ -48,24 +48,23 @@
 	<div class="g-signin2" data-onsuccess="onSignIn" data-width="175" data-height="35" data-longtitle="true"></div>
 
 	<div id="entry">
-	<h3>Log in</h3>
-	<form action='/login' method='POST'>
-		<label>Email: </label><input type="text" id="email" name="email">
-		<label>Pass: </label><input type="text" id="pass" name="pass">
-		<button type="submit" class="login">Log in</button>
-	</form>
-
-	<h3>New here? Sign up!</h3>
-	<form action='sign-up' method='POST'>
-		<label>Email: </label><input type="text" id="email" name="email">
-		<label>Pass: </label><input type="text" id="pass" name="pass">
-		<button type="submit" class="signup">Sign up</button>
-	</form>
+		<h3>Log in</h3>
+		<form action='/login' method='POST'>
+			<label>Email: </label><input type="text" id="email" name="email">
+			<label>Pass: </label><input type="text" id="pass" name="pass">
+			<button type="submit" class="login">Log in</button>
+		</form>
+		<h3>New here? Sign up!</h3>
+		<form action='sign-up' method='POST'>
+			<label>Email: </label><input type="text" id="email" name="email">
+			<label>Pass: </label><input type="text" id="pass" name="pass">
+			<button type="submit" class="signup">Sign up</button>
+		</form>
 	</div>
 </div>
 <br>
 {{/if}}
-<!--script>
+<script>
 function onSignIn(googleUser) {
 	var id_token = googleUser.getAuthResponse().id_token;
 	console.log('Google Auth Response', googleUser);
@@ -74,15 +73,17 @@ function onSignIn(googleUser) {
 		url: "/google-sign-in",
 		data: {"id_token" : id_token}
 	}).done(function(response){
-		console.log(response);
+		console.log("respose = " + response);
 		if(response.newUser){
 			window.location.href = '/add-bands';
+		}else if(response.incompleteProfile){
+			window.location.href = '/complete-profile';
 		}else{
-			window.location.href = '/edit';
+			window.location.href = '/';
 		}
 	})
 };
-</script-->
+</script>
 <style>
 #shiftMessagesRight{
 	padding-left:30px;
@@ -95,15 +96,20 @@ function onSignIn(googleUser) {
 	font-size:5em;
 	color:purple;
 }
+.smaller-glyph{
+  font-size:4.7em;
+}
 .badge-notify{
    background:orange;
    position:relative;
    top: -55px;
    left: -22px;
 }
-
 .col-md-2{
 	color: purple;
+}
+.col-xs-6{
+	margin-bottom: 10vh;
 }
 </style>
 

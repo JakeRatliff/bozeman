@@ -1,18 +1,14 @@
 <!DOCTYPE html>
 <head>
-
 	<meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-	
+    <meta name="viewport" content="width=device-width, initial-scale=1">	
 	<script src="https://apis.google.com/js/platform.js" async defer></script>
-	<meta name="google-signin-client_id" content="581211015635-2jutg96qhkbm769tipdje6s648tqg0fs.apps.googleusercontent.com">
-	
+	<meta name="google-signin-client_id" content="581211015635-2jutg96qhkbm769tipdje6s648tqg0fs.apps.googleusercontent.com">	
 	<script src="https://code.jquery.com/jquery-3.2.1.min.js" 
 	integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" 
 	crossorigin="anonymous">
-	</script>
-	
+	</script>	
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">	
 </head>
 <body>
@@ -42,36 +38,29 @@
 
 <style>
 
-#loggedInUserInfo{
-	
+#loggedInUserInfo{	
 	padding-top: 2px;
 }
-
 .nav-dropdown{
 	display:none;
 	height: 200px;
 	width: 150px;
 	background-color: purple;
 }
-
 .nav-dropdown a{
 	display:block;
 	padding-left: 10px;
 	padding-top: 10px;
 	z-index: 999;
 }
-
 .nav-link{
-	height: 8vh;
-	line-height: 55px;
-	white-space: nowrap;
-	padding-left: 2vw;
+	height:7.5vh;
+	position: absolute;
 }
 .right {
     position: absolute;
     right: 0;
 }
-
 #loggedInNavBar{
 	height:8vh;
 	background: linear-gradient(-45deg, purple, purple, indigo);
@@ -85,26 +74,21 @@
 	z-index: 999;
 	width: 100vw;
 }
-
 .container{
 	margin-top: 8vh;
 }
-
 #navPhotoImg{
 	height:7.5vh;
 	border-radius:100%;
 	border: 1px solid indigo;
 }
-
 </style>
 {{#if loggedInUserName}}
 <script>
 	var loggedInUserInfo = $("#loggedInUserInfo");
-
 	loggedInUserInfo.click('click', function(){
 		$(".nav-dropdown").slideToggle();
 	});
-
 	$(document).ready(function(){
 		console.log("document loaded and jQuery is working");
 		///TODO: ensure users location is turned on
@@ -125,7 +109,6 @@
 			}).done(function(response){
 				console.log(response);
 			});
-			//console.log("updating position: " + position.coords.latitude + ", " + position.coords.longitude);
 		}
 		function showError(error) {
 			switch(error.code) {
