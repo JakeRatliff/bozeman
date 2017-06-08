@@ -4,7 +4,7 @@
 	</div>
 	<div id="continue">
 		<h3>Added your top artists from Spotify.</h3>
-		<button id="continueButton" class="btn large">Continue to Profile</button>
+		<button id="continueButton" class="btn large">Continue to Profile <span class="glyphicon glyphicon-fast-forward" aria-hidden="true"></span></button>
 	</div>
 	<!-- REMOVING THIS FOR NOW IOT SIMPLIFY. TODO: ADD IT BACK LATER.
 	  <h3>Add Artists</h3>
@@ -16,7 +16,7 @@
 
 		function findImage(x){
 			for(i=0;i<x.length;i++){
-				if(175 < x[i]['height'] < 300){
+				if(x[i]['height'] < 260){
 					return i;
 				}
 			}
@@ -71,7 +71,7 @@
           alert('There was an error during the authentication');
         } else {
           localStorage.removeItem(stateKey);
-          if (access_token) {
+          if(access_token){
             $.ajax({
                 url: 'https://api.spotify.com/v1/me/top/artists',
                 headers: {
@@ -85,7 +85,7 @@
 							"<img class='bandImg' src="+i.images[imgIndex].url+">"+
 							"<div class='name'>"+i.name+"</div>"+
 						"</span>"
-						).hide().slideDown('slow');
+						).hide().fadeIn(1000);
 						savedBands.push({"name" : i.name, "spotifyId": i.id, "artistImage": i.images[imgIndex].url});
 						$('#continue').show();
 					});					
@@ -180,10 +180,14 @@
 			text-align: center;
 		}
 		#continue{
-			margin-top: 20px;
-			margin-bottom: 20px;
-			display:inline;
+			text-align: center;
+			margin-top: 5vh;
+			margin-bottom: 5vh;
 			display: none;
+		}
+		button{
+			background: limegreen;
+			color: white;
 		}
 		.glyphicon-remove{
 			margin-left: 15px;
@@ -195,28 +199,33 @@
 			margin: 5px;
 		}
 		.bandImg{
-			height: 175px;
+			height: 100px;
+			width: 100px;
+		}
+		@media (min-width: 600px) {
+			.bandImg{
+				height: 175px;
+				width: 175px;
+			}
 		}
 		.image{
 			position:relative;
-			text-align:center;
-			float: left;		
+			text-align:center;		
 		}
 		.name{
 			display: none;
-			color: black;
-		    left: 0;
+			color: white;
+			left: 0;
 			position:absolute;
-			bottom: 80px;
 			width: 100%;
 			font-weight: bold;
 			pointer-events:none;
+			bottom: 50%;
+			text-align: center;
+			transform: translateY(50%)
 		}
 		.fade{
 			opacity: .2;
-		}
-		#continue h3{
-			display:inline;
 		}
 
 
