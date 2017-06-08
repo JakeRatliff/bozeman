@@ -502,9 +502,12 @@ app.post('/add-bands', function(req, res){
 	var userAllBandIds = [];
 
 	bands.forEach(function(band){getRelated(band)});
+	console.log("app.post('/add-bands'....");
 	console.log(userBands);
+	console.log(userAllBandIds);
+	console.log("userAllBandIds.length = " + userAllBandIds.length);
 	req.session.userBands = userBands;
-	req.session.userAllBandIds = userAllBandIds;
+	
 	
 	///	doc.bandIds.forEach(function(id){userBands.push(id)});
 	///	doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});
@@ -535,6 +538,7 @@ app.post('/add-bands', function(req, res){
 						})
 						processedBands++;
 						if(processedBands === bands.length){
+							req.session.userAllBandIds = userAllBandIds; ///just moved to here
 							sendData();
 						}
 					}else{
@@ -655,8 +659,6 @@ app.post('/send-message', function(req, res){
 //Authentication. TODO: optimize sign up and login flow, add FB login.
 
 app.post('/google-sign-in', function(req, res){
-	console.log("top of google sign in route");
-	console.log(req.body);
 	var auth = firebase.auth();
 	var id_token = req.body.id_token;
 	// Build Firebase credential with the Google ID token.
@@ -674,6 +676,10 @@ app.post('/google-sign-in', function(req, res){
 					req.session.loggedInUserName = doc.name;
 					req.session.completedProfile = true;
 					req.session.navPhoto = doc.iconPhoto;
+					if(doc.bandIds){
+						req.session.userBands = doc.bandIds;
+						req.session.userAllBandIds = doc.allBandIds;
+					}
 					res.send({"newUser": false});
 				}else{
 					res.send({"incompleteProfile": true});
@@ -694,6 +700,53 @@ app.post('/google-sign-in', function(req, res){
 		var credential = error.credential;
 		// ...
 	});
+});
+
+app.post('/facebook-sign-in', function(req, res){
+	var auth = firebase.auth();
+	var authResponse = req.body.authResponse;
+	var credential = firebase.auth.FacebookAuthProvider.credential(authResponse.accessToken)
+	auth.signInWithCredential(credential)
+	.then(function(){
+		var email = auth.currentUser.email;
+		req.session.userEmail = email;
+		coll.findOne({"userEmail" : email}, function(err,doc){
+			if(doc && doc.userEmail){
+				console.log("this user email is already in the db...");
+				if(doc.name){
+					req.session.loggedInUserName = doc.name;
+					req.session.completedProfile = true;
+					req.session.navPhoto = doc.iconPhoto;
+					if(doc.bandIds){
+						req.session.userBands = doc.bandIds;
+						req.session.userAllBandIds = doc.allBandIds;
+					}
+					res.send({"newUser": false});
+				}else{
+					res.send({"incompleteProfile": true});
+				}				
+			}else{
+				console.log("this user email is new to the db...");
+				res.send({"newUser": true});
+			}
+		});
+	})	
+	.catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        // The email of the user's account used.
+        var email = error.email;
+        // The firebase.auth.AuthCredential type that was used.
+        var credential = error.credential;
+        // ...
+		console.log("errorCode: " + errorCode);
+	});
+	console.log(authResponse);
+});
+
+app.get('/login-catch', function(req, res){
+	res.render('login-catch');
 });
 
 app.post('/login', function(req, res) {
@@ -767,7 +820,8 @@ app.post('/sign-up', function(req, res) {
 	var pass = req.body.pass;
 	var signUp = auth.createUserWithEmailAndPassword(email, pass);
 	var errorMsg = function(e){
-		console.log(e.message);
+		console.log(e.code);
+		res.send(e.message);
 	};
 	signUp.then(function(){
 		req.session.userEmail = email;
@@ -776,30 +830,35 @@ app.post('/sign-up', function(req, res) {
 });
 
 app.get('/logout', function(req, res) {
+	var auth = firebase.auth();
 	console.log("logging user out...");
 	signUpFlow = false;
-	/*
-	auth.signOut().then(function(){
-		res.redirect('/');
-	});*/
-	req.session.destroy(function(err) {
-		// cannot access session here
-		console.log("session ended");
-		res.redirect('/');
-	})
+	auth.signOut().then(function() {
+		console.log("signed out firebase");
+		req.session.destroy(function(err) {
+			// cannot access session here
+			console.log("session destoyed.");
+			res.redirect('/');
+		})
+	}).catch(function(error) {
+		console.log(error);
+	});
 });
 
 app.post('/logout', function(req, res) {
-	//var auth = firebase.auth();
+	var auth = firebase.auth();
 	console.log("logging user out...");
-	req.session.destroy(function(err) {
-	  // cannot access session here
-	  console.log("session ended");
-	  res.redirect('/');
-	})/*
-	auth.signOut().then(function(){
-		res.redirect('/');
-	});*/
+	signUpFlow = false;
+	auth.signOut().then(function() {
+		console.log("signed out firebase");
+		req.session.destroy(function(err) {
+			// cannot access session here
+			console.log("session destoyed.");
+			res.redirect('/');
+		})
+	}).catch(function(error) {
+		console.log(error);
+	});
 });
 
 //404 page:

@@ -30,7 +30,6 @@
 		<a href="/list-profiles">All Profiles</a>
 	</div>
 {{/if}}
-
 	<div class="container">
 		{{{body}}}
 	</div>
@@ -90,9 +89,6 @@
 		$(".nav-dropdown").slideToggle();
 	});
 	$(document).ready(function(){
-		console.log("document loaded and jQuery is working");
-		///TODO: ensure users location is turned on
-		///TODO: make app not crash if it isn't /
 		function getLocation() {
 			if (navigator.geolocation) {
 				navigator.geolocation.watchPosition(showPosition,showError); //for one-time: getCurrentPosition()
@@ -129,6 +125,17 @@
 		}
 		getLocation();
 	})	
+</script>
+{{else}}
+<style>
+body{
+	background: linear-gradient(-45deg, purple, purple, indigo);
+	color: white;
+	height:100vh;
+}
+</style>
+<script>
+	$(".container").css("margin-top",0);
 </script>
 {{/if}}
 

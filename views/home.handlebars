@@ -1,7 +1,60 @@
-<script src="https://apis.google.com/js/platform.js" async defer></script>
-<meta name="google-signin-client_id" content="10158595553-vgls2otg0imrq6fstohrees9vbdat547.apps.googleusercontent.com">
-
-<!--TODO: make Google and FB login first options-->
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '1520694817975114',
+      cookie     : true,
+      xfbml      : true,
+      version    : 'v2.8'
+    });
+	$(document).trigger('fbload');	
+  };
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+   
+</script>
+<script src="https://apis.google.com/js/platform.js?onload=onLoadCallback" async defer></script>
+<script>
+	window.onLoadCallback = function(){
+		console.log("top of callback...");
+		gapi.load('auth2', initSigninV2);
+		function initSigninV2(){
+			gapi.auth2.init({
+				client_id: "10158595553-vgls2otg0imrq6fstohrees9vbdat547.apps.googleusercontent.com",
+				scope: "email"
+			}).then(function (authInstance) {
+				var googButton = $("#googLoginButton");
+				googButton.one('click', function(){
+					console.log("clicked googie");
+					authInstance.signIn().then(function(){
+						console.log("then after sign in....");
+						var gmail = authInstance.currentUser.get().getBasicProfile().getEmail();
+						var credential = authInstance.currentUser.get().getAuthResponse();
+						$.ajax({
+							method: "POST",
+							url: "/google-sign-in",
+							data: {"id_token" : credential.id_token}
+						}).done(function(response){
+							console.log("respose = " + response);
+							if(response.newUser){
+								window.location.href = '/add-bands';
+							}else if(response.incompleteProfile){
+								window.location.href = '/complete-profile';
+							}else{
+								window.location.href = '/';
+							}
+						})						
+					});
+				});
+			});		
+		}
+   }
+</script>
+<!--meta name="google-signin-client_id" content="10158595553-vgls2otg0imrq6fstohrees9vbdat547.apps.googleusercontent.com"-->
 
 {{#if loggedInUserName}}
 <div class="container-fluid">
@@ -41,50 +94,188 @@
 </div>
 {{else}}
 <div class="container">
-	<h1>ipsle</h1>
-	<p>Here there needs to be: background image of cuties, semi faded monochrome, value proposition.</p>
-	<p>And high-viz federated login option first, then "or login with with email and password"</p>
-
-	<div class="g-signin2" data-onsuccess="onSignIn" data-width="175" data-height="35" data-longtitle="true"></div>
-
-	<div id="entry">
-		<h3>Log in</h3>
-		<form action='/login' method='POST'>
-			<label>Email: </label><input type="text" id="email" name="email">
-			<label>Pass: </label><input type="text" id="pass" name="pass">
-			<button type="submit" class="login">Log in</button>
-		</form>
-		<h3>New here? Sign up!</h3>
-		<form action='sign-up' method='POST'>
-			<label>Email: </label><input type="text" id="email" name="email">
-			<label>Pass: </label><input type="text" id="pass" name="pass">
-			<button type="submit" class="signup">Sign up</button>
-		</form>
+	<div id="topRow" class="row"></div>
+	<div class="col-md-4"></div>
+	<div id="welcome-tile" class="col-md-4">
+		<h1>Band Friend App</h1>
+		<p>The only dating app that matches based on the bands you like. 
+		See who's in your area!</p>
+		<div id="loginOptions">
+			<div id="googLoginButton" class="federatedLoginButton">
+				<button id="googloginbtn" class="btn btn-large">Continue with Google</button>
+			</div>
+			<div id="fbLoginButton" class="federatedLoginButton">
+				<button id="fbloginbtn" class="btn btn-large">Continue with Facebook</button>
+			</div>
+			<div id="emailAndPass" class="federatedLoginButton">
+				<button id="emailAndPassBtn" class="btn btn-large">Or, continue with email & password</button>
+			</div>
+		</div>
+		<div id="entry">
+			<div id="login-manually" style="display:none;">
+				<form action='/login' method='POST'>
+					<input type="text" id="email" name="email" class="form-control" placeholder="email@example.com">
+					<div style="height:8px"></div>
+					<input type="password" id="pass" name="pass" class="form-control" placeholder="password">
+					<button type="submit" class="btn btn-sm manualEntry attention">Log in</button>
+				</form>
+				<button id="togSignUp" class="btn btn-sm loginToggler">New here? Sign Up</button>
+			</div>
+			<div id="signup-manually">
+				<form action='sign-up' method='POST'>
+					<input type="text" id="email" name="email" class="form-control" placeholder="email@example.com">
+					<div style="height:8px"></div>
+					<input type="password" id="pass" name="pass" class="form-control" placeholder="choose a password">
+					<button type="submit" class="btn btn-sm manualEntry attention">Sign up</button>
+				</form>
+				<button id="togLogIn" class="btn btn-sm loginToggler">Already signed up with email? Log In</button>
+			</div>
+		</div>
 	</div>
+	<div class="col-md-4"></div>
+	<div class="row"></div>
 </div>
+<!--div class="container">
+	<h1>Band Friend App</h1>
+	<p>The only dating app that matches based on the bands you like. Thousands of singles are signing up every day!</p>
+	<h3>Sign up with your Google or Facebook account</h3>
+	<div id="loginOptions">
+		<div id="googLoginButton" class="federatedLoginButton">
+			<button id="googloginbtn" class="btn btn-large">Login with Google</button>
+		</div>
+		
+		<div id="fbLoginButton" class="federatedLoginButton">
+			<button id="fbloginbtn" class="btn btn-large">Login with Facebook</button>
+		</div>
+			<h4>Or, use your email and create a password</h4>
+		<div id="emailAndPass" class="federatedLoginButton">
+			<button id="emailAndPassBtn" class="btn btn-large">Login with Email</button>
+		</div>
+	</div>
+	<div id="entry">
+		<div id="login-manually" style="display:none;">
+			<h3>Log in</h3>
+			<form action='/login' method='POST'>
+				<input type="text" id="email" name="email" placeholder=" email@example.com">
+				<input type="text" id="pass" name="pass" placeholder=" password">
+				<button type="submit" class="btn btn-sm manualEntry attention">Log in</button>
+			</form>
+			<button id="togSignUp" class="btn btn-sm loginToggler">New here? Sign Up</button>
+		</div>
+		<div id="signup-manually">
+			<h3>New here? Sign up!</h3>
+			<form action='sign-up' method='POST'>
+				<input type="text" id="email" name="email" placeholder=" email@example.com">
+				<input type="text" id="pass" name="pass" placeholder=" password">
+				<button type="submit" class="btn btn-sm manualEntry attention">Sign up</button>
+			</form>
+			<button id="togLogIn" class="btn btn-sm loginToggler">Already signed up using email? Log In</button>
+		</div>
+	</div>
+</div-->
 <br>
 {{/if}}
 <script>
-function onSignIn(googleUser) {
-	var id_token = googleUser.getAuthResponse().id_token;
-	console.log('Google Auth Response', googleUser);
-	$.ajax({
-		method: "POST",
-		url: "/google-sign-in",
-		data: {"id_token" : id_token}
-	}).done(function(response){
-		console.log("respose = " + response);
-		if(response.newUser){
-			window.location.href = '/add-bands';
-		}else if(response.incompleteProfile){
-			window.location.href = '/complete-profile';
-		}else{
-			window.location.href = '/';
+var fbButton = $("#fbloginbtn");
+fbButton.one('click', function(){
+	FB.login(function(response){
+		if(response.status == "connected"){
+			$.ajax({
+				method: "POST",
+				url: "/facebook-sign-in",
+				data: {"authResponse" : response.authResponse}
+			}).done(function(serverResponse){
+				console.log(serverResponse);
+				if(serverResponse.newUser){
+					window.location.href = '/add-bands';
+				}else if(serverResponse.incompleteProfile){
+					window.location.href = '/complete-profile';
+				}else{
+					window.location.href = '/';
+				}
+			})
 		}
-	})
-};
+	});
+});
+
+var emailOption = $("#emailAndPassBtn");
+var entry = $("#entry");
+var loginOptions = $("#loginOptions");
+emailOption.one('click', function(){
+	entry.slideDown();
+});
+var togLogIn = $("#togLogIn");
+var togSignUp = $("#togSignUp");
+var loginManually = $("#login-manually");
+var signupManually = $("#signup-manually");
+togLogIn.on('click', function(){
+	signupManually.slideToggle(800, function(){
+		loginManually.slideToggle(800);
+	});
+});
+togSignUp.on('click', function(){
+	loginManually.slideToggle(800, function(){
+		signupManually.slideToggle(800);
+	});
+});
 </script>
 <style>
+#topRow{
+	height: 20vh;
+}
+#welcome-tile{
+  background:white;
+  color: #2a2a2a;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+#entry{
+	display:none;
+}
+#entry input{
+	display:block;
+	margin-bottom: 2px;
+	width: 260px;
+	border-radius: 2px;
+	border: 1px solid indigo;
+	color: black;
+}
+#entry div p{
+	margin-top: 10px;
+}
+#entry input{
+	margin:0 auto;
+}
+#entry div p button{
+	padding-bottom: 3px;
+}
+.manualEntry,
+.loginToggler{
+	margin-top: 10px;
+}
+.loginToggler{
+	background: white;
+	color: indigo;
+}
+.federatedLoginButton{
+	margin-bottom:1vh;
+}
+.federatedLoginButton button,
+.manualEntry,
+.loginToggler{
+	background: white;
+	color: indigo;
+	width: 260px;
+}
+#fbloginbtn{
+	color:white;
+	background:#4267b2;
+}
+#googloginbtn{
+	color:white;
+	background:#0057e7;
+}
 #shiftMessagesRight{
 	padding-left:30px;
 }
@@ -110,15 +301,17 @@ function onSignIn(googleUser) {
 .col-xs-6{
 	margin-bottom: 10vh;
 }
+
+.attention{
+  	background: indigo;
+	color: white;
+}
 </style>
 
 <script>
 var screenHeight = screen.height;
 var docHeight = $(document).height();
 var screenWidth = screen.width;
-$(document).ready(function(){
-	$("body").height(docHeight - 60);
-});
 var messages = $("#messages");
 var userMap = $("#userMap");
 var userList = $("#userList");

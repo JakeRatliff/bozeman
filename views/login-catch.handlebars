@@ -1,0 +1,247 @@
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '1520694817975114',
+      cookie     : true,
+      xfbml      : true,
+      version    : 'v2.8'
+    });
+	$(document).trigger('fbload');	
+  };
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+
+</script>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<meta name="google-signin-client_id" content="10158595553-vgls2otg0imrq6fstohrees9vbdat547.apps.googleusercontent.com">
+
+{{#if loggedInUserName}}
+<div class="container-fluid">
+	<div id="dashboard">
+		<div class="row row-dashboard">
+			<div class="col-md-2"></div>
+			<div class="col-md-2 col-xs-6 text-center">
+				{{#if msgCount}}
+				<span id="shiftMessagesRight">
+					<span id="messages" class="glyphicon smaller-glyph glyphicon-envelope" aria-hidden="true"></span>
+					<span class="badge badge-notify" style="font-size:1.5em;">{{msgCount}}</span>
+				</span>
+				<div>Messages</div>
+				{{else}}
+				<span>
+					<span id="messages" class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+					<span class="badge badge-notify" style="font-size:1.5em;">{{msgCount}}</span>
+				</span>
+				<div>Messages</div>			
+				{{/if}}
+			</div>
+			<div class="col-md-2 col-xs-6 text-center">
+				<span id="search" class="glyphicon glyphicon-heart-empty" aria-hidden="true"></span>
+				<div>Search</div>
+			</div>
+			<div class="col-md-2 col-xs-6 text-center">
+				<span id="browseButton" class="glyphicon glyphicon-globe" aria-hidden="true"></span>
+				<div>Browse</div>
+			</div>
+			<div class="col-md-2 col-xs-6 text-center">
+				<span id="edit" class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+				<div>Edit Profile</div>
+			</div>
+			<div class="col-md-2"></div>
+		</div>
+	</div>
+</div>
+{{else}}
+<div class="container">
+	<div id="loginOptions">
+		<div id="googLoginButton" class="federatedLoginButton">
+			<button class="btn btn-large">Login with Google</button>
+		</div>
+		<!--div class="g-signin2 federatedLoginButton" data-onsuccess="onSignIn" data-width="175" data-height="35" data-longtitle="true"></div-->
+		<div id="fbLoginButton" class="federatedLoginButton">
+			<button id="fbloginbtn" class="btn btn-large">Login with Facebook</button>
+			<!--fb:login-button data-auto-logout-link="true" scope="public_profile,email" size="large"></fb:login-button-->
+		</div>
+		<div id="emailAndPass" class="federatedLoginButton">
+			<button id="emailAndPassBtn" class="btn btn-large">Login with Email</button>
+		</div>
+	</div>
+
+	<div id="entry">
+		<h4>It looks like that email is already registered.<br> Try logging in instead.</h4>
+		<form action='/login' method='POST'>
+			<input type="text" id="email" name="email" placeholder=" email@example.com">
+			<input type="text" id="pass" name="pass" placeholder=" password">
+			<button type="submit" class="btn btn-sm">Log in</button>
+		</form>
+	</div>
+	<br>
+	<div>
+		<button class="btn btn-sm">Show Other Login Options</button>
+	</div>
+</div>
+<br>
+{{/if}}
+<script>/*
+$(document).on('fbload', function(){
+	console.log("bottom FB = " + FB);
+	FB.AppEvents.logPageView(); 
+	FB.getLoginStatus(function(response) {
+		FB.statusChangeCallback(response);
+		console.log(response.status);
+		if(response.status == "connected"){
+			console.log("we are connected to FB...");
+			$.ajax({
+				method: "POST",
+				url: "/facebook-sign-in",
+				data: {"authResponse" : response.authResponse}
+			}).done(function(serverResponse){
+				console.log(serverResponse);
+				if(serverResponse.newUser){
+					window.location.href = '/add-bands';
+				}else if(serverResponse.incompleteProfile){
+					window.location.href = '/complete-profile';
+				}else{
+					window.location.href = '/';
+				}
+			})
+		}
+	});
+});*/
+
+var fbButton = $("#fbloginbtn");
+fbButton.one('click', function(){
+	FB.login(function(response){
+		if(response.status == "connected"){
+			$.ajax({
+				method: "POST",
+				url: "/facebook-sign-in",
+				data: {"authResponse" : response.authResponse}
+			}).done(function(serverResponse){
+				console.log(serverResponse);
+				if(serverResponse.newUser){
+					window.location.href = '/add-bands';
+				}else if(serverResponse.incompleteProfile){
+					window.location.href = '/complete-profile';
+				}else{
+					window.location.href = '/';
+				}
+			})
+		}
+	});
+});
+
+function onSignIn(googleUser) {
+	var id_token = googleUser.getAuthResponse().id_token;
+	console.log('Google Auth Response', googleUser);
+	$.ajax({
+		method: "POST",
+		url: "/google-sign-in",
+		data: {"id_token" : id_token}
+	}).done(function(response){
+		console.log("respose = " + response);
+		if(response.newUser){
+			window.location.href = '/add-bands';
+		}else if(response.incompleteProfile){
+			window.location.href = '/complete-profile';
+		}else{
+			window.location.href = '/';
+		}
+	})
+};
+
+var emailOption = $("#emailAndPassBtn");
+var entry = $("#entry");
+var loginOptions = $("#loginOptions");
+emailOption.one('click', function(){
+	loginOptions.hide();
+	entry.show();
+});
+</script>
+<style>
+#loginOptions{
+	display:none;
+}
+#entry input{
+	display:block;
+	margin-bottom: 2px;
+	width: 260px;
+	border-radius: 2px;
+	border: 1px solid indigo;
+	color: black;
+}
+#entry button{
+	margin-top: 10px;
+}
+.federatedLoginButton{
+	margin-bottom:1vh;
+}
+button{
+	background: white;
+	color: indigo;
+	width: 260px;
+}
+#shiftMessagesRight{
+	padding-left:30px;
+}
+.row-dashboard{
+	margin-top:120px;
+}
+.glyphicon{
+	font-size:5em;
+	color:purple;
+}
+.smaller-glyph{
+  font-size:4.7em;
+}
+.badge-notify{
+   background:orange;
+   position:relative;
+   top: -53px;
+   left: -20px;
+}
+.col-md-2{
+	color: purple;
+}
+.col-xs-6{
+	margin-bottom: 10vh;
+}
+</style>
+
+<script>
+var screenHeight = screen.height;
+var docHeight = $(document).height();
+var screenWidth = screen.width;
+$(document).ready(function(){
+	$("body").height(docHeight - 60);
+});
+var messages = $("#messages");
+var userMap = $("#userMap");
+var userList = $("#userList");
+var browse = $("#browseButton");
+var search = $("#search");
+var edit = $("#edit");
+messages.on('click', function(){
+	window.location.href = '/messages';
+});
+userMap.on('click', function(){
+	window.location.href = '/user-map';
+});
+userList.on('click', function(){
+	window.location.href = '/list-profiles';
+});
+browse.on('click', function(){
+	window.location.href = '/browse';
+});
+search.on('click', function(){
+	alert("Coming Soon!");
+});
+edit.on('click', function(){
+	window.location.href = '/edit';
+});
+</script>
