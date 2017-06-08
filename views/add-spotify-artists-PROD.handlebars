@@ -1,8 +1,8 @@
-    <div class="container">
-      <div id="login">
-        <h3>Add Your Top Artists from Spotify</h3>
+
+    <div id="login">
+		<h3>Add Your Top Artists from Spotify</h3>
         <button id="login-button" class="btn btn-primary">Get Artists from Spotify</button>
-      </div>
+    </div>
 	  
 	<!-- REMOVING THIS FOR NOW IOT SIMPLIFY. TODO: ADD IT BACK LATER.
 	  <h3>Add Artists</h3>
@@ -20,7 +20,7 @@
 	  <div id="continue">
 		<button id="continueButton" class="btn large" style="display:none">Continue to Profile</button>
 	  </div>
-    </div>
+
 
     <script>
       (function() {	  
@@ -187,8 +187,27 @@
 	  
     </script>
 	<style>
+		body{
+			background: linear-gradient(-45deg, purple, purple, indigo);
+			color: white;
+			height: 100vh;
+		}
+		#login{
+			padding-top: 20vh;
+		}
+		#login-button{
+			background: white;
+			color: indigo;
+			border: 1px solid indigo;
+		}
+		#bands{
+			text-align: center;
+		}
 		#continue{
 			margin-top: 20px;
+			margin-bottom: 20px;
+			display:inline;
+			display: none;
 		}
 		.glyphicon-remove{
 			margin-left: 15px;
@@ -199,8 +218,30 @@
 			border-radius:20px;
 			margin: 5px;
 		}
-		
-		.bandImage{
-			height: 175px;
+		.bandImg{
+			height: 100px;
+			width: 100px;
 		}
+		.image{
+			position:relative;
+			text-align:center;
+			float: left;		
+		}
+		.name{
+			display: none;
+			color: white;
+		    left: 0;
+			position:absolute;
+			bottom: 80px;
+			width: 100%;
+			font-weight: bold;
+			pointer-events:none;
+		}
+		.fade{
+			opacity: .2;
+		}
+		#continue h3{
+			display:inline;
+		}
+
 	</style>

@@ -484,12 +484,11 @@ app.post('/user-locale', function(req,res){
 });
 
 app.get('/add-bands', function(req, res){
-	res.render('add-spotify-artists'); /*
 	if(environment == "production"){
 		res.render('add-spotify-artists-PROD');
 	}else{
 		res.render('add-spotify-artists'); //was: add-bands
-	}*/
+	}
 });
 
 app.post('/add-bands', function(req, res){
