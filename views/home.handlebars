@@ -113,6 +113,7 @@
 		</div>
 		<div id="entry">
 			<div id="login-manually" style="display:none;">
+				<h4>Log in With Email</h4>
 				<form action='/login' method='POST'>
 					<input type="text" id="email" name="email" class="form-control" placeholder="email@example.com">
 					<div style="height:8px"></div>
@@ -122,10 +123,11 @@
 				<button id="togSignUp" class="btn btn-sm loginToggler">New here? Sign Up</button>
 			</div>
 			<div id="signup-manually">
+				<h4>Sign up With Email</h4>
 				<form action='sign-up' method='POST'>
 					<input type="text" id="email" name="email" class="form-control" placeholder="email@example.com">
 					<div style="height:8px"></div>
-					<input type="password" id="pass" name="pass" class="form-control" placeholder="choose a password">
+					<input type="password" id="pass" name="pass" class="form-control" placeholder="choose a password (min 6 chars)">
 					<button type="submit" class="btn btn-sm manualEntry attention">Sign up</button>
 				</form>
 				<button id="togLogIn" class="btn btn-sm loginToggler">Already signed up with email? Log In</button>
@@ -135,45 +137,6 @@
 	<div class="col-md-4"></div>
 	<div class="row"></div>
 </div>
-<!--div class="container">
-	<h1>Band Friend App</h1>
-	<p>The only dating app that matches based on the bands you like. Thousands of singles are signing up every day!</p>
-	<h3>Sign up with your Google or Facebook account</h3>
-	<div id="loginOptions">
-		<div id="googLoginButton" class="federatedLoginButton">
-			<button id="googloginbtn" class="btn btn-large">Login with Google</button>
-		</div>
-		
-		<div id="fbLoginButton" class="federatedLoginButton">
-			<button id="fbloginbtn" class="btn btn-large">Login with Facebook</button>
-		</div>
-			<h4>Or, use your email and create a password</h4>
-		<div id="emailAndPass" class="federatedLoginButton">
-			<button id="emailAndPassBtn" class="btn btn-large">Login with Email</button>
-		</div>
-	</div>
-	<div id="entry">
-		<div id="login-manually" style="display:none;">
-			<h3>Log in</h3>
-			<form action='/login' method='POST'>
-				<input type="text" id="email" name="email" placeholder=" email@example.com">
-				<input type="text" id="pass" name="pass" placeholder=" password">
-				<button type="submit" class="btn btn-sm manualEntry attention">Log in</button>
-			</form>
-			<button id="togSignUp" class="btn btn-sm loginToggler">New here? Sign Up</button>
-		</div>
-		<div id="signup-manually">
-			<h3>New here? Sign up!</h3>
-			<form action='sign-up' method='POST'>
-				<input type="text" id="email" name="email" placeholder=" email@example.com">
-				<input type="text" id="pass" name="pass" placeholder=" password">
-				<button type="submit" class="btn btn-sm manualEntry attention">Sign up</button>
-			</form>
-			<button id="togLogIn" class="btn btn-sm loginToggler">Already signed up using email? Log In</button>
-		</div>
-	</div>
-</div-->
-<br>
 {{/if}}
 <script>
 var fbButton = $("#fbloginbtn");
@@ -197,11 +160,11 @@ fbButton.one('click', function(){
 		}
 	});
 });
-
 var emailOption = $("#emailAndPassBtn");
 var entry = $("#entry");
 var loginOptions = $("#loginOptions");
 emailOption.one('click', function(){
+	$(this).hide();
 	entry.slideDown();
 });
 var togLogIn = $("#togLogIn");
