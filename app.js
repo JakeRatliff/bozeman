@@ -155,6 +155,10 @@ app.get('/', function(req,res){
 	var email = req.session.userEmail;
 	var user = req.session.loggedInUserName;
 	var msgCount;
+	var errMsg;
+	if(req.session.errMsg){
+		errMsg = req.session.errMsg;
+	}
 	if(req.session.completedProfile){
 		//console.log("loggedInUserName = " + loggedInUserName);
 		coll.findOne({"userEmail":email},function(err,doc){
@@ -169,8 +173,9 @@ app.get('/', function(req,res){
 			});
 		});
 	}else{
-		res.render('home');
+		res.render('home',{errMsg:errMsg});
 	}
+	req.session.errMsg = undefined;
 });
 
 app.get('/redirector', function(req, res){
@@ -804,7 +809,9 @@ app.post('/login', function(req, res) {
 	var pass = req.body.pass;
 	var signIn = auth.signInWithEmailAndPassword(email, pass);
 	var errorMsg = function(e){
-		console.log(e.message);
+		console.log(e.code);
+		req.session.errMsg = e.message;
+		res.redirect(303, '/');
 	};
 	signIn.then(loginFlow).catch(errorMsg);
 });
@@ -821,11 +828,12 @@ app.post('/sign-up', function(req, res) {
 	var signUp = auth.createUserWithEmailAndPassword(email, pass);
 	var errorMsg = function(e){
 		console.log(e.code);
-		res.send(e.message);
+		req.session.errMsg = e.message;
+		res.redirect(303, '/');
 	};
 	signUp.then(function(){
 		req.session.userEmail = email;
-		res.redirect('/add-bands');
+		res.redirect(303, '/add-bands');
 	}).catch(errorMsg);    
 });
 

@@ -95,6 +95,16 @@
 {{else}}
 <div class="container">
 	<div id="topRow" class="row"></div>
+	{{#if errMsg}}
+	<div class="panel panel-warning">
+		<div class="panel-heading">
+			<h3 class="panel-title">Alert</h3>
+		</div>
+		<div class="panel-body">		
+			{{errMsg}}		
+		</div>
+	</div>
+	{{/if}}
 	<div class="col-md-4"></div>
 	<div id="welcome-tile" class="col-md-4">
 		<h1>App Name</h1>
@@ -264,7 +274,6 @@ togSignUp.on('click', function(){
 .col-xs-6{
 	margin-bottom: 10vh;
 }
-
 .attention{
   	background: indigo;
 	color: white;
