@@ -1,10 +1,11 @@
 	<div id="login">
 		<h3>Add Your Top Artists from Spotify</h3>
-		<button id="login-button" class="btn btn-primary">Get Artists from Spotify</button>
+		<button id="login-button" class="btn">Get Artists from Spotify</button>
 	</div>
 	<div id="continue">
 		<h3>Added your top artists from Spotify.</h3>
-		<button id="continueButton" class="btn large">Continue to Profile <span class="glyphicon glyphicon-fast-forward" aria-hidden="true"></span></button>
+		<p>(You can edit this list later)</p>
+		<button id="continueButton" class="btn">Continue to Profile <span class="glyphicon glyphicon-fast-forward" aria-hidden="true"></span></button>
 	</div>
 	<!-- REMOVING THIS FOR NOW IOT SIMPLIFY. TODO: ADD IT BACK LATER.
 	  <h3>Add Artists</h3>
@@ -85,10 +86,12 @@
 							"<img class='bandImg' src="+i.images[imgIndex].url+">"+
 							"<div class='name'>"+i.name+"</div>"+
 						"</span>"
-						).hide().fadeIn(1000);
+						).hide().fadeIn(1500);
 						savedBands.push({"name" : i.name, "spotifyId": i.id, "artistImage": i.images[imgIndex].url});
-						$('#continue').show();
-					});					
+					});
+					$('#continue').show();
+					//var heightNow = $('#bands').height()+$('#continue').height();
+					//$('body').css('height', heightNow);
 					$('#login').hide();
                 }
             });
@@ -170,11 +173,6 @@
 		}
 		#login{
 			padding-top: 20vh;
-		}
-		#login-button{
-			background: white;
-			color: indigo;
-			border: 1px solid indigo;
 		}
 		#bands{
 			text-align: center;
