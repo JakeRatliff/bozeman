@@ -1,11 +1,12 @@
+<h1>Finish Your Profile<br><small> You can edit all of this later.</small></h1>
 <form class="form-horizontal" role="form" 
 		enctype="multipart/form-data" method="POST"
 		action="/complete-profile">
 	<div class="form-group">
-		<label for="fieldName" class="col-sm-2 control-label">User Name</label>
+		<label for="fieldName" class="col-sm-2 control-label">Username</label> <!--TODO No spaces -->
 		<div class="col-sm-4">
 			<input type="text" class="form-control" 
-			id="fieldName" name="name">
+			id="fieldName" name="name" maxlength="15" required placeholder="Minimum 4 characters.">
 		</div>
 	</div>
 	<div class="form-group">
@@ -16,29 +17,143 @@
 		</div>
 	</div>
 	<div class="form-group">
+		<label for="fieldSnippet" class="col-sm-2 control-label">Snippet</label>
+		<div class="col-sm-4">
+			<input type="text" class="form-control" 
+				id="fieldSnippet" name="snippet" maxlength="50" placeholder="(Optional) Briefly sum up your whole deal.">
+		</div>		
+	</div>
+	<div class="form-group">
 		<label for="fieldBio" class="col-sm-2 control-label">Bio</label>
 		<div class="col-sm-4">
-			<input type="text" class="form-control" 
-				id="fieldBio" name="bio">
+			<textarea type="text" class="form-control" 
+				id="fieldBio" name="bio" rows="4" maxlength="10000" placeholder="What should folks know about you? 10,000 character limit."></textarea>
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="fieldAge" class="col-sm-2 control-label">Age</label>
+		<label for="fieldGender" class="col-sm-2 control-label">Gender / Age</label>
 		<div class="col-sm-4">
-			<input type="text" class="form-control" 
-				id="fieldAge" name="age">
+			<div class="input-group">
+				<select type="text" class="form-control" name="gender" required>
+					<option value="" disabled selected>Select gender</option>
+					<option value="female">Female</option>
+					<option value="male">Male</option>
+					<option value="non-binary">Non-binary</option>
+				</select>
+				<span class="input-group-addon"></span>
+				<select type="text" class="form-control" name="age" required>
+					<option value="" disabled selected>Select age</option>
+					<option value="18">18</option>
+					<option value="19">19</option>
+					<option value="20">20</option>
+					<option value="21">21</option>
+					<option value="22">22</option>
+					<option value="23">23</option>
+					<option value="24">24</option>
+					<option value="25">25</option>
+					<option value="26">26</option>
+					<option value="27">27</option>
+					<option value="28">28</option>
+					<option value="29">29</option>
+					<option value="30">30</option>
+					<option value="31">31</option>
+					<option value="32">32</option>
+					<option value="33">33</option>
+					<option value="34">34</option>
+					<option value="35">35</option>
+					<option value="36">36</option>
+					<option value="37">37</option>
+					<option value="38">38</option>
+					<option value="39">39</option>
+					<option value="40">40</option>
+					<option value="41">41</option>
+					<option value="42">42</option>
+					<option value="43">43</option>
+					<option value="44">44</option>
+					<option value="45">45</option>
+					<option value="46">46</option>
+					<option value="47">47</option>
+					<option value="48">48</option>
+					<option value="49">49</option>
+					<option value="50">50</option>
+					<option value="51">51</option>
+					<option value="52">52</option>
+					<option value="53">53</option>
+					<option value="54">54</option>
+					<option value="55">55+</option>
+				</select>
+			</div>
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="fieldGender" class="col-sm-2 control-label">Gender</label>
+		<label for="fieldTOS" class="col-sm-2 control-label"></label>
 		<div class="col-sm-4">
-			<input type="text" class="form-control" 
-				id="fieldGender" name="gender">
+			<input type="checkbox"
+				id="fieldTOS" name="TOS" required> I agree to the <a href="terms-of-service">terms of service</a>.
 		</div>
 	</div>
 	<div class="form-group">
 		<div class="col-sm-offset-2 col-sm-4">
-			<button type="submit" class="btn btn-primary">Finish Profile</button>
+			<button type="submit" class="btn">Finish Profile</button>
 		</div>
 	</div>
 </form>
+<style>
+body{
+	color: white;
+	}
+button{
+	background: limegreen;
+	}
+img{
+	height:100px;
+	}
+textarea{
+	resize: none;
+	}
+</style>
+<script>
+var nameField = $("#fieldName");
+var uniqueName;
+nameField.keyup(function() {
+	var field = $(this);
+	var name = field.val();
+	if(name.length < 4){
+		field.css("color","#555");
+		uniqueName = true;
+		return
+	};
+	$.ajax({
+		method: 'POST',
+		url: '/check-name',
+		data: {name: name}
+	}).done(function(response){
+		//console.log(response);
+		//console.log(field);
+		if(response.taken == true){
+			field.css("color", "red");
+			uniqueName = false;
+		}else{
+			field.css("color", "green");
+			uniqueName = true;
+		}
+	});
+});
+nameField.focusout(function(){
+	var field = $(this);
+	var name = field.val();
+	function clearName(){
+		field.val('');
+	}
+	if(uniqueName == false){
+		alert("That username has already been claimed. Try a different username.");
+		uniqueName = true;
+		clearName();
+		field.css("color","#555");
+	}
+	if(name.length < 4 && name.length > 0){
+		alert("Your username is too short. It should be at least 4 characters.");
+		clearName();
+	}
+});
+</script>

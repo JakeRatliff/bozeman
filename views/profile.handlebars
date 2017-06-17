@@ -14,24 +14,23 @@
 		<p id="distance"><strong>Distance:</strong> {{distance}} miles</p>
 		{{/if}}
 		<p>You and {{userName}} have {{musicMatch}} taste in music.</p>
-		<p><strong>Bio:</strong> {{bio}}</p>
+		<p id="bio"><strong>Bio:</strong> {{bio}}</p>
 
 		{{#if age}}<p><strong>Age:</strong> {{age}}</p>{{/if}}
 		{{#if gender}}<p><strong>Gender:</strong> {{gender}}</p>{{/if}}
 	</div>
-
-<div id="images">  
-	{{#each bands}}
-    <span class="image">
-		<img src="{{this.artistImage}}">
-		<span class='name'>{{this.name}}</span>
-    </span>
-	{{/each}}
-</div>
-	<div id="messageBox" style="display:none;">
-		<textarea></textarea>
+	<div id="images">  
+		{{#each bands}}
+		<span class="image">
+			<img src="{{this.artistImage}}">
+			<span class='name'>{{this.name}}</span>
+		</span>
+		{{/each}}
 	</div>
-</div>
+		<div id="messageBox" style="display:none;">
+			<textarea maxlength="1000" placeholder="Say hello!"></textarea>
+		</div>
+	</div>
 
 <div class="nav" id="bottomNav">
 	<div id="bottomButtonGroup">
@@ -48,7 +47,9 @@
 	</div>
 </div>
 <style>
-
+#writtenContent p{
+	white-space: pre;
+	}
 #bottomNav{
 	bottom: -8.1vh;
 	transform:translateY(-100%);
@@ -94,6 +95,11 @@
 	color: white;
     padding-top:2vh;
 }
+@media only screen and (max-height: 300px) {
+    .bottomNavButton{
+        padding-top:0;
+    }
+}
 #message{
 	border-left: 1px solid white;
 	border-right: 1px solid white;
@@ -112,6 +118,7 @@
   resize: none;
   width:100%;
   height: 30vh;
+  font-size: 2em;
 }
 #secondary .bottomNavButton{
 	width: 48%;
@@ -165,6 +172,7 @@ var nextProfile = $("#nextProfile");
 var cancelMessage = $("#cancelMessage");
 var sendMessage = $("#sendMessage");
 var messageSent = $("#messageSent");
+var bottomButtons = $(".bottomNavButton");
 nextProfile.one('click', function(){
 	$.ajax({
 		method: "GET",
@@ -192,6 +200,7 @@ showImages.click(function(){
 message.click(function(){
 	$("#primary").fadeToggle("fast");
 	$("#secondary").fadeToggle("fast");
+	//bottomButtons.css("padding-top","");
 	messageBox.slideToggle({
 		direction: "up"
 	}, 600);
@@ -199,6 +208,7 @@ message.click(function(){
 cancelMessage.click(function(){
 	$("#primary").fadeToggle("fast");
 	$("#secondary").fadeToggle("fast");
+	//bottomButtons.css("padding-top","2vh")
 	messageBox.slideToggle({
 		direction: "up"
 	}, 600);

@@ -9,7 +9,9 @@
 	integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" 
 	crossorigin="anonymous">
 	</script>	
-	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">	
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Monoton" rel="stylesheet">
+
 </head>
 <body>
 <!--a href="/">Home</a-->
@@ -17,7 +19,7 @@
 {{#if loggedInUserName}}
 	<div id="loggedInNavBar">
 		<a id="brand" href="/" class="nav-link">Home</a>
-		<span  id="loggedInUserInfo" style="position:absolute;right: 0px;">
+		<span  id="loggedInUserInfo">
 			<span>{{loggedInUserName}}</span>	
 			<span id="navBarPhoto">
 				<img id="navPhotoImg" src="{{navPhoto}}">
@@ -37,9 +39,6 @@
 
 <style>
 
-#loggedInUserInfo{	
-	padding-top: 2px;
-}
 .nav-dropdown{
 	display:none;
 	height: 200px;
@@ -80,6 +79,12 @@
 	height:7.5vh;
 	border-radius:100%;
 	border: 1px solid indigo;
+}
+#loggedInUserInfo{
+	position:absolute;
+	right:0px;
+	padding-right: 2vw;
+	padding-top: 2px;
 }
 </style>
 {{#if loggedInUserName}}
@@ -129,7 +134,7 @@
 {{else}}
 <style>
 body{
-	background: linear-gradient(-45deg, purple, purple, indigo);
+	background: linear-gradient(-60deg, purple, purple, indigo);
 	height:100vh;
 }
 </style>

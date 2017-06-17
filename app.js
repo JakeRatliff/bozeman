@@ -578,7 +578,9 @@ app.get('/complete-profile', function(req,res){
 		res.redirect('/')
 	};
 });
-
+app.get('/terms-of-service', function(req, res){
+	res.render('terms-of-service');
+});
 app.post('/complete-profile', function(req,res){
     console.log("--FORM--");
 	var form = new formidable.IncomingForm();
@@ -632,6 +634,19 @@ app.post('/complete-profile', function(req,res){
 			console.log(e)
 		};		
 	}
+});
+
+app.post('/check-name', function(req, res){
+	var name = req.body.name;
+	coll.findOne({name:name}, function(err,doc){
+		if(doc){
+			res.send({"taken":true});
+			res.end();
+		}else{
+			res.send({"taken":false});
+			res.end();
+		}
+	});
 });
 
 app.get('/messages', function(req, res){
@@ -748,10 +763,6 @@ app.post('/facebook-sign-in', function(req, res){
 		console.log("errorCode: " + errorCode);
 	});
 	console.log(authResponse);
-});
-
-app.get('/login-catch', function(req, res){
-	res.render('login-catch');
 });
 
 app.post('/login', function(req, res) {

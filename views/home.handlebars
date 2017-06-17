@@ -107,9 +107,12 @@
 	{{/if}}
 	<div class="col-md-4"></div>
 	<div id="welcome-tile" class="col-md-4">
-		<h1>App Name</h1>
-		<p>The only dating app that matches based on the bands you like. 
-		See who's in your area!</p>
+		<h1>Cassette Dates</h1>
+		<p>
+			The only dating app that matches based on the bands you like.
+			Completely free for users who sign up now.
+			See who's in your area!			
+		</p>
 		<div id="loginOptions">
 			<div id="googLoginButton" class="federatedLoginButton">
 				<button id="googloginbtn" class="btn btn-large">Continue with Google</button>
@@ -193,6 +196,10 @@ togSignUp.on('click', function(){
 });
 </script>
 <style>
+h1{
+	font-family: 'Monoton', cursive;
+	font-size: 3.5em;
+}
 #topRow{
 	height: 15vh;
 }
@@ -276,6 +283,15 @@ togSignUp.on('click', function(){
 }
 .attention{
   	background: indigo;
+	color: white;
+}
+.attention:hover,
+.attention:focus { 
+    background-color: purple;
+	color: white;
+}
+.attention:active { 
+    background-color: indigo;
 	color: white;
 }
 </style>
