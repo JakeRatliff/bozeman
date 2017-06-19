@@ -316,7 +316,23 @@ userList.on('click', function(){
 	window.location.href = '/list-profiles';
 });
 browse.on('click', function(){
-	window.location.href = '/browse';
+	///NEEDS - if not located, then, else, straight to browse.
+	//window.location.href = '/browse';
+	$.ajax({
+		url: '/check-loc',
+		method: 'POST'
+	}).done(function(res){
+		console.log(res);
+		if(res.located == true){
+			window.location.href = '/browse';
+		}else{
+			if(screenWidth < 500){
+				alert("Turn on location to see who is near you.");			
+			}else{
+				alert("Allow the site to know your location to see who is near you.");
+			};
+		}
+	});
 });
 search.on('click', function(){
 	alert("Coming Soon!");

@@ -345,20 +345,13 @@ app.get('/list-profiles', function(req, res){
 app.get('/profile/:userName', function(req, res){
 //console.log(loggedInUserLocation);	
 	if(req.session.loggedInUserName){
-		var imageSrc;
-		var userName = req.params.userName;
-		var otherUserLocation;
-		var otherUserAllBandIds;
-		var distance;
-		var bio;
-		var age;
-		var gender;
-		var bands;
-		var musicMatch;		
+		var imageSrc, snippet, otherUserLocation, otherUserAllBandIds, distance, bio, age, gender, bands, musicMatch;
+		var userName = req.params.userName;	
 		coll.findOne({"name" : userName}, function(err,doc){
 			if(!err){
 				imageSrc = doc.photo;//photo.path.slice(doc.photo.path.indexOf('uploads'));						
 				userName = doc.name;
+				snippet = doc.snippet;
 				bio = doc.bio;
 				age = doc.age;
 				gender = doc.gender;
@@ -377,11 +370,12 @@ app.get('/profile/:userName', function(req, res){
 				}
 				otherUserLocation = doc.loc.coordinates;
 				distance = haversineDistance(req.session.loggedInUserLocation, otherUserLocation, true);
-				//TODO. exact user distance in view is DEV only. they dont need to see exact distance from each other.
+				///TODO. exact user distance in view is DEV only. they dont need to see exact distance from each other.
 				if(userName == req.session.loggedInUserName){
 					res.render('self',{
 					imgUrl:imageSrc,
 						userName:userName,
+						snippet: snippet,
 						bio: bio,
 						age: age,
 						gender: gender,
@@ -391,6 +385,7 @@ app.get('/profile/:userName', function(req, res){
 					res.render('profile',{
 						imgUrl:imageSrc,
 						userName:userName,
+						snippet: snippet,
 						bio: bio,
 						age: age,
 						gender: gender,
@@ -584,10 +579,11 @@ app.get('/terms-of-service', function(req, res){
 app.post('/complete-profile', function(req,res){
     console.log("--FORM--");
 	var form = new formidable.IncomingForm();
-	var name, bio, age, gender, image, imgUrl;	
+	var name, snippet, bio, age, gender, image, imgUrl;	
 	form.parse(req, function(err, fields, files){
 		if(err) console.log(err);
 		name = fields.name;
+		snippet = fields.snippet;
 		bio = fields.bio;
 		age = fields.age;
 		gender = fields.gender;
@@ -617,6 +613,7 @@ app.post('/complete-profile', function(req,res){
 			{$set:{
 				"name" : name,
 				"photo" : imgUrl,
+				"snippet" : snippet,
 				"iconPhoto": iconPhoto,
 				"bio" : bio,
 				"age" : age,
@@ -647,6 +644,18 @@ app.post('/check-name', function(req, res){
 			res.end();
 		}
 	});
+});
+
+app.post('/check-loc', function(req, res){
+	var loc = req.session.loggedInUserLocation;
+	console.log(loc);
+	if(loc){
+		res.send({"located":true});
+		res.end();
+	}else{
+		res.send({"located":false});
+		res.end();
+	};
 });
 
 app.get('/messages', function(req, res){

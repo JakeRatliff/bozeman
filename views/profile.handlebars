@@ -1,5 +1,5 @@
 
-<div id="content">
+<div id="content" class="col-md-8">
 	<div id="writtenContent">
 		<h1 id="userName">{{userName}}</h1>
 		<div>
@@ -10,12 +10,14 @@
 			{{/if}}
 		</div>
 		<h3>About {{userName}}</h3>
+		{{#if snippet}}
+		<p>{{snippet}}</p>
+		{{/if}}
 		{{#if distance}}
 		<p id="distance"><strong>Distance:</strong> {{distance}} miles</p>
 		{{/if}}
-		<p>You and {{userName}} have {{musicMatch}} taste in music.</p>
+		<p><strong>Mix match:</strong> You and {{userName}} have {{musicMatch}} taste in music.</p>
 		<p id="bio"><strong>Bio:</strong> {{bio}}</p>
-
 		{{#if age}}<p><strong>Age:</strong> {{age}}</p>{{/if}}
 		{{#if gender}}<p><strong>Gender:</strong> {{gender}}</p>{{/if}}
 	</div>
@@ -27,10 +29,10 @@
 		</span>
 		{{/each}}
 	</div>
-		<div id="messageBox" style="display:none;">
-			<textarea maxlength="1000" placeholder="Say hello!"></textarea>
-		</div>
+	<div id="messageBox" style="display:none;">
+		<textarea maxlength="1000" placeholder="Say hello!"></textarea>
 	</div>
+</div>
 
 <div class="nav" id="bottomNav">
 	<div id="bottomButtonGroup">
@@ -48,7 +50,7 @@
 </div>
 <style>
 #writtenContent p{
-	white-space: pre;
+	white-space: pre-line;
 	}
 #bottomNav{
 	bottom: -8.1vh;
@@ -118,7 +120,8 @@
   resize: none;
   width:100%;
   height: 30vh;
-  font-size: 2em;
+  font-size: 1.8em;
+  padding: 4px;
 }
 #secondary .bottomNavButton{
 	width: 48%;
@@ -159,11 +162,13 @@
 }
 </style>
 
-<script>var showImages = $("#showImages");
+<script>
+var showImages = $("#showImages");
 var hideImages = $("#hideImages");
 var images = $("#images");
 var overlay = $("#overlay");
 var docHeight = $(document).height();
+//var viewWidth = $(window).width();
 var writtenContent = $("#writtenContent");
 var counter = 0;
 var messageBox = $("#messageBox");
