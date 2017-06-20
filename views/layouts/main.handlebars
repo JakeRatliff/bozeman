@@ -18,7 +18,9 @@
 
 {{#if loggedInUserName}}
 	<div id="loggedInNavBar">
-		<a id="brand" href="/" class="nav-link">Home</a>
+		<a id="brand" href="/">
+			<img src="http://res.cloudinary.com/hcsrlzzci/image/upload/c_scale,w_69/v1497981587/logo-small-inverted-clear_wqfpbc.png">
+		</a>
 		<span  id="loggedInUserInfo">
 			<span>{{loggedInUserName}}</span>	
 			<span id="navBarPhoto">
@@ -38,7 +40,10 @@
 </body>
 
 <style>
-
+#brand img{
+	height: 7.8vh;
+	padding: .5vh;
+}
 .nav-dropdown{
 	display:none;
 	height: 200px;
