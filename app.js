@@ -930,7 +930,7 @@ app.post('/logout', function(req, res) {
 //404 page:
 app.use(function(req, res, next){
     res.status(404);
-    res.render('404');
+    res.render('404',{404:true});
 });
 
 //500 page:
