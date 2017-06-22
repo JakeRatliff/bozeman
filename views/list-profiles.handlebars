@@ -1,8 +1,35 @@
-<div class="container">
+
 <h2>All Profiles <small>(Dev Only - Not for Production)</small></h2>
-	<ul id="profiles">
-		{{#each profiles}}
-		<li><a href="/profile/{{this.name}}">{{this.name}}</a></li>
-		{{/each}}
-	</ul>
-</div>
+{{#if jake}}
+<ul id="profiles">
+	{{#each profiles}}
+	<li>
+		<a href="/profile/{{this.name}}">{{this.name}} </a><button value="{{this.name}}" class="adminKill btn btn-xs btn-danger">Delete</button>
+	</li>
+	{{/each}}
+</ul>
+{{else}}
+<ul id="profiles">
+	{{#each profiles}}
+	<li>
+		<a href="/profile/{{this.name}}">{{this.name}}</a>
+	</li>
+	{{/each}}
+</ul>
+{{/if}}
+
+<script>
+var adminKill = $(".adminKill");
+adminKill.one('click', function(){
+	var userName = $(this).val();
+	alert(userName);
+	$.ajax({
+		method: "POST",
+		url: "/adminKill",
+		data: {"userName": userName}
+	}).done(function(response){
+		console.log(response);
+		////success: fadeOut this...
+	});
+});
+</script>

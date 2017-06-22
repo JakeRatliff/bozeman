@@ -13,6 +13,12 @@ module.exports = {
 	firbaseDatabaseURL: process.env.firbaseDatabaseURL,
 	firebaseStorageBucket: process.env.firebaseStorageBucket,
 	
+	//Firebase admin
+	firebaseAdminPrivateKeyP1: process.env.firebaseAdminPrivateKeyP1,
+	firebaseAdminPrivateKeyP2: process.env.firebaseAdminPrivateKeyP2,
+	firebaseAdminClientEmail: process.env.firebaseAdminClientEmail,
+	
+	
 	//Cloudinary
 	cloud_name: process.env.cloud_name,
 	cloud_api_key: process.env.cloud_api_key,

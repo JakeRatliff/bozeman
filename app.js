@@ -89,7 +89,20 @@ var firebaseConfig = {
   storageBucket: 	credentials.firebaseStorageBucket,
 };
 firebase.initializeApp(firebaseConfig);
-
+/*
+var admin = require("firebase-admin");
+//var serviceAccount = require("path/to/serviceAccountKey.json");
+var privKey = "-----BEGIN PRIVATE KEY-----\n"+credentials.firebaseAdminPrivateKeyP1+credentials.firebaseAdminPrivateKeyP2+"\n-----END PRIVATE KEY-----\n";
+console.log(typeof privKey);
+admin.initializeApp({
+  credential: admin.credential.cert({
+    projectId: "bandfriends-e7868",
+    clientEmail: credentials.firebaseAdminClientEmail,
+    privateKey: privKey
+  }),
+  databaseURL: credentials.firebaseDatabaseURL
+});
+*/
 var spotify = {
 	clientId: credentials.spotifyClientId,
 	clientSecret: credentials.spotifyClientSecret
@@ -326,20 +339,46 @@ app.post('/make-fake', function(req,res){
 
 //NOT FOR PRODUCTION:
 app.get('/list-profiles', function(req, res){
+	var jake;
+	if(req.session.loggedInUserName == "jake"){
+		jake = true;
+	}
 	var profiles = [];		
 	coll.find({}, {_id:0, name:1}).toArray(function(err,docs){
 		if(!err){
 			docs.forEach(function(doc){
 				profiles.push(doc);
 			});
-			console.log(profiles);
 			res.render('list-profiles',{
-				profiles:profiles
+				profiles:profiles,
+				jake: jake
 			});
 		}else{
 			console.log(err);
 		}
 	}); 
+});
+
+app.post('/adminKill', function(req, res){
+	var userName = req.body.userName;
+	console.log(userName);
+	///****delete in Firebase and Cloudinary, too. Delete session also.
+	coll.findOne({"name": userName},{"_id":0, "userEmail":1, "photo":1}, function(err, doc){
+		if(!err){
+			var email = doc.userEmail;
+			admin.auth().getUserByEmail(email)
+				.then(function(userRecord) {
+					// See the tables above for the contents of userRecord
+					console.log("Successfully fetched user data:", userRecord.toJSON());
+				})
+				.catch(function(error) {
+					console.log("Error fetching user data:", error);
+				});
+		}else{
+			console.log(err)
+		};
+	});
+	coll.remove({"name": userName});
 });
 
 app.get('/profile/:userName', function(req, res){
@@ -506,12 +545,11 @@ app.post('/add-bands', function(req, res){
 	console.log(userBands);
 	console.log(userAllBandIds);
 	console.log("userAllBandIds.length = " + userAllBandIds.length);
-	req.session.userBands = userBands;
-	
+	console.log("userBands in /add-bands post route = " + userBands);
+	req.session.userBands = userBands;	
 	
 	///	doc.bandIds.forEach(function(id){userBands.push(id)});
-	///	doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});
-	
+	///	doc.allBandIds.forEach(function(id){userAllBandIds.push(id)});	
 	
 	function getRelated(band){
 		bandIds.push(band.spotifyId);
